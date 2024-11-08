@@ -10,11 +10,11 @@ class PokemonListPage extends StatefulWidget {
 
 class _PokemonListPageState extends State<PokemonListPage> {
   String? selectedType;
-  int? selectedGeneration;
+  String? selectedGeneration;
 
   // Lista de tipos y generaciones para el dropdown
-  final List<String> types = ['fire', 'water', 'grass', 'electric', 'normal', 'fighting', 'flying', 'poison', 'ground', 'rock', 'bug', 'ghost', 'steel', 'psychic', 'ice', 'dragon', 'dark', 'fairy'];
-  final List<int> generations = [1, 2, 3, 4, 5, 6, 7, 8, 9];
+  final List<String?> types = [null, 'fire', 'water', 'grass', 'electric', 'normal', 'fighting', 'flying', 'poison', 'ground', 'rock', 'bug', 'ghost', 'steel', 'psychic', 'ice', 'dragon', 'dark', 'fairy'];
+  final List<String?> generations = [null, 'generation-i', 'generation-ii', 'generation-iii', 'generation-iv', 'generation-v', 'generation-vi', 'generation-vii', 'generation-viii', 'generation-ix'];
 
   @override
   Widget build(BuildContext context) {
@@ -31,13 +31,13 @@ class _PokemonListPageState extends State<PokemonListPage> {
             child: Row(
               children: [
                 Expanded(
-                  child: DropdownButton<String>(
+                  child: DropdownButton<String?>(
                     hint: const Text("Selecciona Tipo"),
                     value: selectedType,
-                    items: types.map((String type) {
-                      return DropdownMenuItem<String>(
+                    items: types.map((String? type) {
+                      return DropdownMenuItem<String?>(
                         value: type,
-                        child: Text(type),
+                        child: Text(type ?? 'Todos'),
                       );
                     }).toList(),
                     onChanged: (String? newValue) {
@@ -48,16 +48,16 @@ class _PokemonListPageState extends State<PokemonListPage> {
                   ),
                 ),
                 Expanded(
-                  child: DropdownButton<int>(
+                  child: DropdownButton<String?>(
                     hint: const Text("Selecciona Generación"),
                     value: selectedGeneration,
-                    items: generations.map((int generation) {
-                      return DropdownMenuItem<int>(
+                    items: generations.map((String? generation) {
+                      return DropdownMenuItem<String?>(
                         value: generation,
-                        child: Text("Generación $generation"),
+                        child: Text(generation ?? 'Todas'),
                       );
                     }).toList(),
-                    onChanged: (int? newValue) {
+                    onChanged: (String? newValue) {
                       setState(() {
                         selectedGeneration = newValue;
                       });
@@ -71,26 +71,31 @@ class _PokemonListPageState extends State<PokemonListPage> {
             child: Query(
               options: QueryOptions(
                 document: gql('''
-                  query GetPokemons(\$type: String, \$generation: Int) {
-                    pokemon_v2_pokemon(
-                      where: {
-                        ${selectedType != null ? 'pokemon_v2_pokemontypes: { pokemon_v2_type: { name: { _eq: \$type } } }' : ''}
-                        ${selectedGeneration != null ? 'pokemon_v2_pokemonspecies: { generation_id: { _eq: \$generation } }' : ''}
-                      }
-                    ) {
-                      id
-                      name
-                      pokemon_v2_pokemontypes {
-                        pokemon_v2_type {
-                          name
-                        }
-                      }
-                    }
-                  }
-                '''),
+      query GetPokemons(\$type: String, \$generation: String) {
+        pokemon_v2_pokemon(
+          where: {
+            ${selectedType != null ? 'pokemon_v2_pokemontypes: { pokemon_v2_type: { name: { _eq: \$type } } }' : ''}
+            ${selectedGeneration != null ? 'pokemon_v2_pokemonspecy: { pokemon_v2_generation: { name: { _eq: \$generation } } }' : ''}
+          }
+        ) {
+          id
+          name
+          pokemon_v2_pokemontypes {
+            pokemon_v2_type {
+              name
+            }
+          }
+          pokemon_v2_pokemonspecy {
+            pokemon_v2_generation {
+              name
+            }
+          }
+        }
+      }
+    '''),
                 variables: {
-                  'type': selectedType,
-                  'generation': selectedGeneration,
+                  if (selectedType != null) 'type': selectedType,
+                  if (selectedGeneration != null) 'generation': selectedGeneration,
                 },
               ),
               builder: (QueryResult result, {fetchMore, refetch}) {
@@ -102,7 +107,11 @@ class _PokemonListPageState extends State<PokemonListPage> {
                   return const Center(child: CircularProgressIndicator());
                 }
 
-                final pokemons = result.data?['pokemon_v2_pokemon'] as List<dynamic>;
+                final pokemons = result.data?['pokemon_v2_pokemon'] as List<dynamic>? ?? [];
+
+                if (pokemons.isEmpty) {
+                  return const Center(child: Text('No se encontraron Pokémon.'));
+                }
 
                 return ListView.builder(
                   itemCount: pokemons.length,
@@ -111,6 +120,7 @@ class _PokemonListPageState extends State<PokemonListPage> {
                     final pokemonId = pokemon['id'];
                     final pokemonName = pokemon['name'];
                     final pokemonTypes = pokemon['pokemon_v2_pokemontypes'] as List;
+                    final pokemonGeneration = pokemon['pokemon_v2_pokemonspecy']['pokemon_v2_generation']['name'];
 
                     // Construir la URL de la imagen usando el ID del Pokémon
                     final imageUrl = 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/$pokemonId.png';
@@ -119,7 +129,7 @@ class _PokemonListPageState extends State<PokemonListPage> {
                       leading: Image.network(imageUrl),
                       title: Text('#$pokemonId $pokemonName'),
                       subtitle: Text(
-                        pokemonTypes.map((type) => type['pokemon_v2_type']['name']).join(', '),
+                        'Types: ${pokemonTypes.map((type) => type['pokemon_v2_type']['name']).join(', ')}\nGeneration: $pokemonGeneration',
                       ),
                     );
                   },
