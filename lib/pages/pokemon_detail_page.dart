@@ -11,6 +11,7 @@ class PokemonDetailPage extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Detalles del Pokémon'),
+        backgroundColor: Theme.of(context).colorScheme.inversePrimary,
       ),
       body: Query(
         options: QueryOptions(
@@ -65,7 +66,6 @@ class PokemonDetailPage extends StatelessWidget {
           final pokemon = result.data?['pokemon_v2_pokemon_by_pk'];
           final name = pokemon['name'];
 
-          // Comprobación de nulidad para las listas
           final types = (pokemon['pokemon_v2_pokemontypes'] as List?)
               ?.map((type) => type['pokemon_v2_type']['name'])
               .join(', ') ?? 'No types available';
@@ -86,31 +86,130 @@ class PokemonDetailPage extends StatelessWidget {
               .take(10)
               .join(', ') ?? 'No moves available';
 
-          /*final flavorTextEntries = pokemon['pokemon_v2_pokemonspecy']['pokemon_v2_flavortextentries'] as List?;
-          final flavorText = flavorTextEntries != null && flavorTextEntries.isNotEmpty
-              ? flavorTextEntries[0]['flavor_text']
-              : 'No description available';*/
-
           return Padding(
             padding: const EdgeInsets.all(16.0),
             child: SingleChildScrollView(
               child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
+                crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  Text('Name: $name', style: Theme.of(context).textTheme.titleLarge),
-                  Text('Types: $types'),
-                  Text('Height: $height'),
-                  Text('Weight: $weight'),
-                  Text('Abilities: $abilities'),
-                  const SizedBox(height: 16.0),
-                  const SizedBox(height: 16.0),
-                  Text('Stats:\n$stats'),
-                  const SizedBox(height: 16.0),
-                  Text('Moves: $moves'),
-                  //const SizedBox(height: 16.0),
-                  //Text('Description: $flavorText'),
-                  const SizedBox(height: 16.0),
-                  Image.network('https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/$pokemonId.png'),
+                  // Imagen y nombre
+                  Center(
+                    child: Column(
+                      children: [
+                        Image.network(
+                          'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/$pokemonId.png',
+                          height: 200,
+                          fit: BoxFit.cover,
+                        ),
+                        const SizedBox(height: 16),
+                        Text(
+                          name.toUpperCase(),
+                          style: Theme.of(context).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.bold),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  // Tipos
+                  Card(
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                    color: Colors.blue.shade50,
+                    child: Padding(
+                      padding: const EdgeInsets.all(16.0),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const Text('Tipo', style: TextStyle(fontWeight: FontWeight.bold)),
+                          Text(types, style: const TextStyle(fontSize: 16)),
+                        ],
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  // Altura y peso
+                  Row(
+                    children: [
+                      Expanded(
+                        child: Card(
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                          color: Colors.green.shade50,
+                          child: Padding(
+                            padding: const EdgeInsets.all(16.0),
+                            child: Column(
+                              children: [
+                                const Text('Altura', style: TextStyle(fontWeight: FontWeight.bold)),
+                                Text('$height m', style: const TextStyle(fontSize: 16)),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 16),
+                      Expanded(
+                        child: Card(
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                          color: Colors.green.shade50,
+                          child: Padding(
+                            padding: const EdgeInsets.all(16.0),
+                            child: Column(
+                              children: [
+                                const Text('Peso', style: TextStyle(fontWeight: FontWeight.bold)),
+                                Text('$weight kg', style: const TextStyle(fontSize: 16)),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 16),
+                  // Habilidades
+                  Card(
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                    color: Colors.orange.shade50,
+                    child: Padding(
+                      padding: const EdgeInsets.all(16.0),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const Text('Habilidades', style: TextStyle(fontWeight: FontWeight.bold)),
+                          Text(abilities, style: const TextStyle(fontSize: 16)),
+                        ],
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  // Estadísticas
+                  Card(
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                    color: Colors.purple.shade50,
+                    child: Padding(
+                      padding: const EdgeInsets.all(16.0),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const Text('Estadísticas', style: TextStyle(fontWeight: FontWeight.bold)),
+                          Text(stats, style: const TextStyle(fontSize: 16)),
+                        ],
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  // Movimientos
+                  Card(
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                    color: Colors.yellow.shade50,
+                    child: Padding(
+                      padding: const EdgeInsets.all(16.0),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const Text('Movimientos (10 primeros)', style: TextStyle(fontWeight: FontWeight.bold)),
+                          Text(moves, style: const TextStyle(fontSize: 16)),
+                        ],
+                      ),
+                    ),
+                  ),
                 ],
               ),
             ),

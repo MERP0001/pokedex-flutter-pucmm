@@ -13,8 +13,34 @@ class _PokemonListPageState extends State<PokemonListPage> {
   String? selectedType;
   String? selectedGeneration;
 
-  final List<String?> types = [null, 'fire', 'water', 'grass', 'electric', 'normal', 'fighting', 'flying', 'poison', 'ground', 'rock', 'bug', 'ghost', 'steel', 'psychic', 'ice', 'dragon', 'dark', 'fairy'];
-  final List<String?> generations = [null, 'generation-i', 'generation-ii', 'generation-iii', 'generation-iv', 'generation-v', 'generation-vi', 'generation-vii', 'generation-viii', 'generation-ix'];
+  final List<String?> types = [
+    null, 'fire', 'water', 'grass', 'electric', 'normal', 'fighting', 'flying', 'poison', 'ground', 'rock', 'bug', 'ghost', 'steel', 'psychic', 'ice', 'dragon', 'dark', 'fairy'
+  ];
+
+  final List<String?> generations = [
+    null, 'generation-i', 'generation-ii', 'generation-iii', 'generation-iv', 'generation-v', 'generation-vi', 'generation-vii', 'generation-viii', 'generation-ix'
+  ];
+
+  final Map<String, Color> typeColors = {
+    'fire': Colors.red,
+    'water': Colors.blue,
+    'grass': Colors.green,
+    'electric': Colors.yellow,
+    'normal': Colors.grey,
+    'fighting': Colors.brown,
+    'flying': Colors.lightBlueAccent,
+    'poison': Colors.purple,
+    'ground': Colors.orange,
+    'rock': Colors.brown[700]!,
+    'bug': Colors.lightGreen,
+    'ghost': Colors.deepPurple,
+    'steel': Colors.blueGrey,
+    'psychic': Colors.pink,
+    'ice': Colors.cyan,
+    'dragon': Colors.indigo,
+    'dark': Colors.black,
+    'fairy': Colors.pinkAccent,
+  };
 
   @override
   Widget build(BuildContext context) {
@@ -106,21 +132,22 @@ class _PokemonListPageState extends State<PokemonListPage> {
                   return const Center(child: Text('No se encontraron Pokémon.'));
                 }
 
-                return ListView.builder(
+                return GridView.builder(
+                  gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                    crossAxisCount: 2, // Dos columnas
+                    childAspectRatio: 3 / 2, // Relación de aspecto de los elementos
+                  ),
                   itemCount: pokemons.length,
                   itemBuilder: (context, index) {
                     final pokemon = pokemons[index];
                     final pokemonId = pokemon['id'];
                     final pokemonName = pokemon['name'];
                     final pokemonTypes = pokemon['pokemon_v2_pokemontypes'] as List;
+                    final primaryType = pokemonTypes.isNotEmpty ? pokemonTypes[0]['pokemon_v2_type']['name'] : 'normal';
+                    final color = typeColors[primaryType] ?? Colors.grey;
                     final imageUrl = 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/$pokemonId.png';
 
-                    return ListTile(
-                      leading: Image.network(imageUrl),
-                      title: Text('#$pokemonId $pokemonName'),
-                      subtitle: Text(
-                        pokemonTypes.map((type) => type['pokemon_v2_type']['name']).join(', '),
-                      ),
+                    return InkWell(
                       onTap: () {
                         Navigator.push(
                           context,
@@ -129,6 +156,26 @@ class _PokemonListPageState extends State<PokemonListPage> {
                           ),
                         );
                       },
+                      child: Container(
+                        decoration: BoxDecoration(
+                          color: color.withOpacity(0.2), // Fondo con el color según el tipo
+                          borderRadius: BorderRadius.circular(12), // Bordes redondeados
+                        ),
+                        margin: const EdgeInsets.all(8.0),
+                        padding: const EdgeInsets.all(8.0),
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Image.network(imageUrl, height: 60, width: 60),
+                            const SizedBox(height: 8),
+                            Text('#$pokemonId $pokemonName', style: TextStyle(fontWeight: FontWeight.bold)),
+                            Text(
+                              pokemonTypes.map((type) => type['pokemon_v2_type']['name']).join(', '),
+                              style: TextStyle(color: Colors.black54),
+                            ),
+                          ],
+                        ),
+                      ),
                     );
                   },
                 );
