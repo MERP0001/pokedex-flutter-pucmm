@@ -1,10 +1,47 @@
 import 'package:flutter/material.dart';
 import 'package:graphql_flutter/graphql_flutter.dart';
 
-class PokemonDetailPage extends StatelessWidget {
+class PokemonDetailPage extends StatefulWidget {
   final int pokemonId;
 
   const PokemonDetailPage({super.key, required this.pokemonId});
+
+  @override
+  _PokemonDetailPageState createState() => _PokemonDetailPageState();
+}
+
+class _PokemonDetailPageState extends State<PokemonDetailPage> with SingleTickerProviderStateMixin {
+  late AnimationController _controller;
+  late Animation<Offset> _offsetAnimation;
+  double _opacity = 0.0;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 500),
+    );
+
+    _offsetAnimation = Tween<Offset>(
+      begin: const Offset(0.0, 0.5),
+      end: Offset.zero,
+    ).animate(CurvedAnimation(parent: _controller, curve: Curves.easeOut));
+
+    // Iniciar la animación de opacidad
+    Future.delayed(const Duration(milliseconds: 300), () {
+      setState(() {
+        _opacity = 1.0;
+        _controller.forward();
+      });
+    });
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -52,7 +89,7 @@ class PokemonDetailPage extends StatelessWidget {
               }
             }
           '''),
-          variables: {'id': pokemonId},
+          variables: {'id': widget.pokemonId},
         ),
         builder: (QueryResult result, {fetchMore, refetch}) {
           if (result.hasException) {
@@ -92,121 +129,144 @@ class PokemonDetailPage extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  // Imagen y nombre
-                  Center(
-                    child: Column(
-                      children: [
-                        Image.network(
-                          'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/$pokemonId.png',
-                          height: 200,
-                          fit: BoxFit.cover,
+                  // Imagen y nombre animados
+                  SlideTransition(
+                    position: _offsetAnimation,
+                    child: Center(
+                      child: Column(
+                        children: [
+                          Image.network(
+                            'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/${widget.pokemonId}.png',
+                            height: 200,
+                            fit: BoxFit.cover,
+                          ),
+                          const SizedBox(height: 16),
+                          Text(
+                            name.toUpperCase(),
+                            style: Theme.of(context).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.bold),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  // Sección de Tipo con animación de opacidad
+                  AnimatedOpacity(
+                    opacity: _opacity,
+                    duration: const Duration(milliseconds: 1500),
+                    child: Card(
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                      color: Colors.blue.shade50,
+                      child: Padding(
+                        padding: const EdgeInsets.all(16.0),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            const Text('Tipo', style: TextStyle(fontWeight: FontWeight.bold)),
+                            Text(types, style: const TextStyle(fontSize: 16)),
+                          ],
                         ),
-                        const SizedBox(height: 16),
-                        Text(
-                          name.toUpperCase(),
-                          style: Theme.of(context).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.bold),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  // Altura y peso con animación de opacidad
+                  AnimatedOpacity(
+                    opacity: _opacity,
+                    duration: const Duration(milliseconds: 1500),
+                    child: Row(
+                      children: [
+                        Expanded(
+                          child: Card(
+                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                            color: Colors.green.shade50,
+                            child: Padding(
+                              padding: const EdgeInsets.all(16.0),
+                              child: Column(
+                                children: [
+                                  const Text('Altura', style: TextStyle(fontWeight: FontWeight.bold)),
+                                  Text('$height m', style: const TextStyle(fontSize: 16)),
+                                ],
+                              ),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 16),
+                        Expanded(
+                          child: Card(
+                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                            color: Colors.green.shade50,
+                            child: Padding(
+                              padding: const EdgeInsets.all(16.0),
+                              child: Column(
+                                children: [
+                                  const Text('Peso', style: TextStyle(fontWeight: FontWeight.bold)),
+                                  Text('$weight kg', style: const TextStyle(fontSize: 16)),
+                                ],
+                              ),
+                            ),
+                          ),
                         ),
                       ],
                     ),
                   ),
                   const SizedBox(height: 16),
-                  // Tipos
-                  Card(
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                    color: Colors.blue.shade50,
-                    child: Padding(
-                      padding: const EdgeInsets.all(16.0),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          const Text('Tipo', style: TextStyle(fontWeight: FontWeight.bold)),
-                          Text(types, style: const TextStyle(fontSize: 16)),
-                        ],
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 16),
-                  // Altura y peso
-                  Row(
-                    children: [
-                      Expanded(
-                        child: Card(
-                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                          color: Colors.green.shade50,
-                          child: Padding(
-                            padding: const EdgeInsets.all(16.0),
-                            child: Column(
-                              children: [
-                                const Text('Altura', style: TextStyle(fontWeight: FontWeight.bold)),
-                                Text('$height m', style: const TextStyle(fontSize: 16)),
-                              ],
-                            ),
-                          ),
+                  // Sección de Habilidades con animación de opacidad
+                  AnimatedOpacity(
+                    opacity: _opacity,
+                    duration: const Duration(milliseconds: 1500),
+                    child: Card(
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                      color: Colors.orange.shade50,
+                      child: Padding(
+                        padding: const EdgeInsets.all(16.0),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            const Text('Habilidades', style: TextStyle(fontWeight: FontWeight.bold)),
+                            Text(abilities, style: const TextStyle(fontSize: 16)),
+                          ],
                         ),
                       ),
-                      const SizedBox(width: 16),
-                      Expanded(
-                        child: Card(
-                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                          color: Colors.green.shade50,
-                          child: Padding(
-                            padding: const EdgeInsets.all(16.0),
-                            child: Column(
-                              children: [
-                                const Text('Peso', style: TextStyle(fontWeight: FontWeight.bold)),
-                                Text('$weight kg', style: const TextStyle(fontSize: 16)),
-                              ],
-                            ),
-                          ),
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  // Sección de Estadísticas con animación de opacidad
+                  AnimatedOpacity(
+                    opacity: _opacity,
+                    duration: const Duration(milliseconds: 1500),
+                    child: Card(
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                      color: Colors.purple.shade50,
+                      child: Padding(
+                        padding: const EdgeInsets.all(16.0),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            const Text('Estadísticas', style: TextStyle(fontWeight: FontWeight.bold)),
+                            Text(stats, style: const TextStyle(fontSize: 16)),
+                          ],
                         ),
                       ),
-                    ],
-                  ),
-                  const SizedBox(height: 16),
-                  // Habilidades
-                  Card(
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                    color: Colors.orange.shade50,
-                    child: Padding(
-                      padding: const EdgeInsets.all(16.0),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          const Text('Habilidades', style: TextStyle(fontWeight: FontWeight.bold)),
-                          Text(abilities, style: const TextStyle(fontSize: 16)),
-                        ],
-                      ),
                     ),
                   ),
                   const SizedBox(height: 16),
-                  // Estadísticas
-                  Card(
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                    color: Colors.purple.shade50,
-                    child: Padding(
-                      padding: const EdgeInsets.all(16.0),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          const Text('Estadísticas', style: TextStyle(fontWeight: FontWeight.bold)),
-                          Text(stats, style: const TextStyle(fontSize: 16)),
-                        ],
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 16),
-                  // Movimientos
-                  Card(
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                    color: Colors.yellow.shade50,
-                    child: Padding(
-                      padding: const EdgeInsets.all(16.0),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          const Text('Movimientos (10 primeros)', style: TextStyle(fontWeight: FontWeight.bold)),
-                          Text(moves, style: const TextStyle(fontSize: 16)),
-                        ],
+                  // Sección de Movimientos con animación de opacidad
+                  AnimatedOpacity(
+                    opacity: _opacity,
+                    duration: const Duration(milliseconds: 1500),
+                    child: Card(
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                      color: Colors.yellow.shade50,
+                      child: Padding(
+                        padding: const EdgeInsets.all(16.0),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            const Text('Movimientos (10 primeros)', style: TextStyle(fontWeight: FontWeight.bold)),
+                            Text(moves, style: const TextStyle(fontSize: 16)),
+                          ],
+                        ),
                       ),
                     ),
                   ),

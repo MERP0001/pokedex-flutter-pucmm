@@ -9,7 +9,7 @@ class PokemonListPage extends StatefulWidget {
   _PokemonListPageState createState() => _PokemonListPageState();
 }
 
-class _PokemonListPageState extends State<PokemonListPage> {
+class _PokemonListPageState extends State<PokemonListPage> with TickerProviderStateMixin {
   String? selectedType;
   String? selectedGeneration;
 
@@ -134,8 +134,8 @@ class _PokemonListPageState extends State<PokemonListPage> {
 
                 return GridView.builder(
                   gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                    crossAxisCount: 2, // Dos columnas
-                    childAspectRatio: 3 / 2, // Relación de aspecto de los elementos
+                    crossAxisCount: 2,
+                    childAspectRatio: 3 / 2,
                   ),
                   itemCount: pokemons.length,
                   itemBuilder: (context, index) {
@@ -147,33 +147,53 @@ class _PokemonListPageState extends State<PokemonListPage> {
                     final color = typeColors[primaryType] ?? Colors.grey;
                     final imageUrl = 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/$pokemonId.png';
 
-                    return InkWell(
-                      onTap: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) => PokemonDetailPage(pokemonId: pokemonId),
-                          ),
-                        );
-                      },
-                      child: Container(
-                        decoration: BoxDecoration(
-                          color: color.withOpacity(0.2), // Fondo con el color según el tipo
-                          borderRadius: BorderRadius.circular(12), // Bordes redondeados
-                        ),
-                        margin: const EdgeInsets.all(8.0),
-                        padding: const EdgeInsets.all(8.0),
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Image.network(imageUrl, height: 60, width: 60),
-                            const SizedBox(height: 8),
-                            Text('#$pokemonId $pokemonName', style: TextStyle(fontWeight: FontWeight.bold)),
-                            Text(
-                              pokemonTypes.map((type) => type['pokemon_v2_type']['name']).join(', '),
-                              style: TextStyle(color: Colors.black54),
+                    final animationController = AnimationController(
+                      vsync: this,
+                      duration: const Duration(milliseconds: 400),
+                    );
+                    final animation = Tween<Offset>(
+                      begin: const Offset(0, 0.7),
+                      end: Offset.zero,
+                    ).animate(CurvedAnimation(
+                      parent: animationController,
+                      curve: Curves.easeOut,
+                    ));
+
+                    animationController.forward();
+
+                    return SlideTransition(
+                      position: animation,
+                      child: FadeTransition(
+                        opacity: animationController,
+                        child: InkWell(
+                          onTap: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => PokemonDetailPage(pokemonId: pokemonId),
+                              ),
+                            );
+                          },
+                          child: Container(
+                            decoration: BoxDecoration(
+                              color: color.withOpacity(0.2),
+                              borderRadius: BorderRadius.circular(12),
                             ),
-                          ],
+                            margin: const EdgeInsets.all(8.0),
+                            padding: const EdgeInsets.all(8.0),
+                            child: Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Image.network(imageUrl, height: 60, width: 60),
+                                const SizedBox(height: 8),
+                                Text('#$pokemonId $pokemonName', style: TextStyle(fontWeight: FontWeight.bold)),
+                                Text(
+                                  pokemonTypes.map((type) => type['pokemon_v2_type']['name']).join(', '),
+                                  style: TextStyle(color: Colors.black54),
+                                ),
+                              ],
+                            ),
+                          ),
                         ),
                       ),
                     );
