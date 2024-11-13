@@ -46,7 +46,10 @@ class _PokemonListPageState extends State<PokemonListPage> with TickerProviderSt
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Pokédex'),
+        title: const Text(
+          'Pokédex',
+          style: TextStyle(fontFamily: 'DiaryOfAn8BitMage'),
+        ),
         backgroundColor: Theme.of(context).colorScheme.inversePrimary,
       ),
       body: Column(
@@ -135,7 +138,7 @@ class _PokemonListPageState extends State<PokemonListPage> with TickerProviderSt
                 return GridView.builder(
                   gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
                     crossAxisCount: 2,
-                    childAspectRatio: 3 / 2,
+                    childAspectRatio: 2 / 3,
                   ),
                   itemCount: pokemons.length,
                   itemBuilder: (context, index) {
@@ -179,17 +182,26 @@ class _PokemonListPageState extends State<PokemonListPage> with TickerProviderSt
                               color: color.withOpacity(0.2),
                               borderRadius: BorderRadius.circular(12),
                             ),
-                            margin: const EdgeInsets.all(8.0),
-                            padding: const EdgeInsets.all(8.0),
+                            margin: const EdgeInsets.all(10.0),
+                            padding: const EdgeInsets.all(10.0),
                             child: Column(
                               mainAxisAlignment: MainAxisAlignment.center,
                               children: [
                                 Image.network(imageUrl, height: 60, width: 60),
-                                const SizedBox(height: 8),
-                                Text('#$pokemonId $pokemonName', style: TextStyle(fontWeight: FontWeight.bold)),
+                                const SizedBox(height: 6),
+                                Text(
+                                  '#$pokemonId $pokemonName',
+                                  style: TextStyle(
+                                    fontFamily: 'DiaryOfAn8BitMage',
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
                                 Text(
                                   pokemonTypes.map((type) => type['pokemon_v2_type']['name']).join(', '),
-                                  style: TextStyle(color: Colors.black54),
+                                  style: TextStyle(
+                                    fontFamily: 'DiaryOfAn8BitMage',
+                                    color: Colors.black54,
+                                  ),
                                 ),
                               ],
                             ),

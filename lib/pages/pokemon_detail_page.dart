@@ -47,7 +47,10 @@ class _PokemonDetailPageState extends State<PokemonDetailPage> with SingleTicker
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Detalles del Pokémon'),
+        title: const Text(
+          'Detalles del Pokémon',
+          style: TextStyle(fontFamily: 'DiaryOfAn8BitMage'),
+        ),
         backgroundColor: Theme.of(context).colorScheme.inversePrimary,
       ),
       body: Query(
@@ -143,7 +146,10 @@ class _PokemonDetailPageState extends State<PokemonDetailPage> with SingleTicker
                           const SizedBox(height: 16),
                           Text(
                             name.toUpperCase(),
-                            style: Theme.of(context).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.bold),
+                            style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                              fontFamily: 'DiaryOfAn8BitMage',
+                              fontWeight: FontWeight.bold,
+                            ),
                           ),
                         ],
                       ),
@@ -162,8 +168,20 @@ class _PokemonDetailPageState extends State<PokemonDetailPage> with SingleTicker
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            const Text('Tipo', style: TextStyle(fontWeight: FontWeight.bold)),
-                            Text(types, style: const TextStyle(fontSize: 16)),
+                            const Text(
+                              'Tipo',
+                              style: TextStyle(
+                                fontFamily: 'DiaryOfAn8BitMage',
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                            Text(
+                              types,
+                              style: const TextStyle(
+                                fontFamily: 'DiaryOfAn8BitMage',
+                                fontSize: 16,
+                              ),
+                            ),
                           ],
                         ),
                       ),
@@ -184,8 +202,20 @@ class _PokemonDetailPageState extends State<PokemonDetailPage> with SingleTicker
                               padding: const EdgeInsets.all(16.0),
                               child: Column(
                                 children: [
-                                  const Text('Altura', style: TextStyle(fontWeight: FontWeight.bold)),
-                                  Text('$height m', style: const TextStyle(fontSize: 16)),
+                                  const Text(
+                                    'Altura',
+                                    style: TextStyle(
+                                      fontFamily: 'DiaryOfAn8BitMage',
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                  Text(
+                                    '$height m',
+                                    style: const TextStyle(
+                                      fontFamily: 'DiaryOfAn8BitMage',
+                                      fontSize: 16,
+                                    ),
+                                  ),
                                 ],
                               ),
                             ),
@@ -200,8 +230,20 @@ class _PokemonDetailPageState extends State<PokemonDetailPage> with SingleTicker
                               padding: const EdgeInsets.all(16.0),
                               child: Column(
                                 children: [
-                                  const Text('Peso', style: TextStyle(fontWeight: FontWeight.bold)),
-                                  Text('$weight kg', style: const TextStyle(fontSize: 16)),
+                                  const Text(
+                                    'Peso',
+                                    style: TextStyle(
+                                      fontFamily: 'DiaryOfAn8BitMage',
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                  Text(
+                                    '$weight kg',
+                                    style: const TextStyle(
+                                      fontFamily: 'DiaryOfAn8BitMage',
+                                      fontSize: 16,
+                                    ),
+                                  ),
                                 ],
                               ),
                             ),
@@ -223,8 +265,20 @@ class _PokemonDetailPageState extends State<PokemonDetailPage> with SingleTicker
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            const Text('Habilidades', style: TextStyle(fontWeight: FontWeight.bold)),
-                            Text(abilities, style: const TextStyle(fontSize: 16)),
+                            const Text(
+                              'Habilidades',
+                              style: TextStyle(
+                                fontFamily: 'DiaryOfAn8BitMage',
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                            Text(
+                              abilities,
+                              style: const TextStyle(
+                                fontFamily: 'DiaryOfAn8BitMage',
+                                fontSize: 16,
+                              ),
+                            ),
                           ],
                         ),
                       ),
@@ -243,8 +297,20 @@ class _PokemonDetailPageState extends State<PokemonDetailPage> with SingleTicker
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            const Text('Estadísticas', style: TextStyle(fontWeight: FontWeight.bold)),
-                            Text(stats, style: const TextStyle(fontSize: 16)),
+                            const Text(
+                              'Estadísticas',
+                              style: TextStyle(
+                                fontFamily: 'DiaryOfAn8BitMage',
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                            Text(
+                              stats,
+                              style: const TextStyle(
+                                fontFamily: 'DiaryOfAn8BitMage',
+                                fontSize: 16,
+                              ),
+                            ),
                           ],
                         ),
                       ),
@@ -263,8 +329,20 @@ class _PokemonDetailPageState extends State<PokemonDetailPage> with SingleTicker
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            const Text('Movimientos (10 primeros)', style: TextStyle(fontWeight: FontWeight.bold)),
-                            Text(moves, style: const TextStyle(fontSize: 16)),
+                            const Text(
+                              'Movimientos (10 primeros)',
+                              style: TextStyle(
+                                fontFamily: 'DiaryOfAn8BitMage',
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                            Text(
+                              moves,
+                              style: const TextStyle(
+                                fontFamily: 'DiaryOfAn8BitMage',
+                                fontSize: 16,
+                              ),
+                            ),
                           ],
                         ),
                       ),

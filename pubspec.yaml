@@ -89,5 +89,14 @@ flutter:
   #       - asset: fonts/TrajanPro_Bold.ttf
   #         weight: 700
   #
+  
   # For details regarding fonts from package dependencies,
   # see https://flutter.dev/to/font-from-package
+
+  assets:
+    - assets/fonts/DiaryOfAn8BitMage-lYDD.ttf
+
+  fonts:
+    - family: DiaryOfAn8BitMage
+      fonts:
+        - asset: assets/fonts/DiaryOfAn8BitMage-lYDD.ttf
