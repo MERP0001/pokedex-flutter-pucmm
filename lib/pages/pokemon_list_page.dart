@@ -2,6 +2,20 @@ import 'package:flutter/material.dart';
 import 'package:graphql_flutter/graphql_flutter.dart';
 import 'pokemon_detail_page.dart';
 
+class Pokemon {
+  final int id;
+  final String name;
+  final List<String> types;
+  final String generation;
+
+  Pokemon({
+    required this.id,
+    required this.name,
+    required this.types,
+    required this.generation,
+  });
+}
+
 class PokemonListPage extends StatefulWidget {
   const PokemonListPage({super.key});
 
@@ -9,16 +23,44 @@ class PokemonListPage extends StatefulWidget {
   _PokemonListPageState createState() => _PokemonListPageState();
 }
 
-class _PokemonListPageState extends State<PokemonListPage> with TickerProviderStateMixin {
+class _PokemonListPageState extends State<PokemonListPage>
+    with TickerProviderStateMixin {
   String? selectedType;
   String? selectedGeneration;
 
   final List<String?> types = [
-    null, 'fire', 'water', 'grass', 'electric', 'normal', 'fighting', 'flying', 'poison', 'ground', 'rock', 'bug', 'ghost', 'steel', 'psychic', 'ice', 'dragon', 'dark', 'fairy'
+    null,
+    'fire',
+    'water',
+    'grass',
+    'electric',
+    'normal',
+    'fighting',
+    'flying',
+    'poison',
+    'ground',
+    'rock',
+    'bug',
+    'ghost',
+    'steel',
+    'psychic',
+    'ice',
+    'dragon',
+    'dark',
+    'fairy'
   ];
 
   final List<String?> generations = [
-    null, 'generation-i', 'generation-ii', 'generation-iii', 'generation-iv', 'generation-v', 'generation-vi', 'generation-vii', 'generation-viii', 'generation-ix'
+    null,
+    'generation-i',
+    'generation-ii',
+    'generation-iii',
+    'generation-iv',
+    'generation-v',
+    'generation-vi',
+    'generation-vii',
+    'generation-viii',
+    'generation-ix'
   ];
 
   final Map<String, Color> typeColors = {
@@ -55,7 +97,8 @@ class _PokemonListPageState extends State<PokemonListPage> with TickerProviderSt
       body: Column(
         children: [
           Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+            padding:
+                const EdgeInsets.symmetric(horizontal: 12.0, vertical: 8.0),
             child: Row(
               children: [
                 Expanded(
@@ -63,7 +106,8 @@ class _PokemonListPageState extends State<PokemonListPage> with TickerProviderSt
                     hint: const Text("Selecciona Tipo"),
                     value: selectedType,
                     items: types.map((String? type) {
-                      return DropdownMenuItem<String?>(value: type, child: Text(type ?? 'Todos'));
+                      return DropdownMenuItem<String?>(
+                          value: type, child: Text(type ?? 'Todos'));
                     }).toList(),
                     onChanged: (String? newValue) {
                       setState(() {
@@ -77,7 +121,9 @@ class _PokemonListPageState extends State<PokemonListPage> with TickerProviderSt
                     hint: const Text("Selecciona Generación"),
                     value: selectedGeneration,
                     items: generations.map((String? generation) {
-                      return DropdownMenuItem<String?>(value: generation, child: Text(generation ?? 'Todas'));
+                      return DropdownMenuItem<String?>(
+                          value: generation,
+                          child: Text(generation ?? 'Todas'));
                     }).toList(),
                     onChanged: (String? newValue) {
                       setState(() {
@@ -117,7 +163,8 @@ class _PokemonListPageState extends State<PokemonListPage> with TickerProviderSt
                 '''),
                 variables: {
                   if (selectedType != null) 'type': selectedType,
-                  if (selectedGeneration != null) 'generation': selectedGeneration,
+                  if (selectedGeneration != null)
+                    'generation': selectedGeneration,
                 },
               ),
               builder: (QueryResult result, {fetchMore, refetch}) {
@@ -129,10 +176,24 @@ class _PokemonListPageState extends State<PokemonListPage> with TickerProviderSt
                   return const Center(child: CircularProgressIndicator());
                 }
 
-                final pokemons = result.data?['pokemon_v2_pokemon'] as List<dynamic>? ?? [];
+                final pokemonsData =
+                    result.data?['pokemon_v2_pokemon'] as List<dynamic>? ?? [];
+                final pokemons = pokemonsData.map((pokemonData) {
+                  return Pokemon(
+                    id: pokemonData['id'],
+                    name: pokemonData['name'],
+                    types: (pokemonData['pokemon_v2_pokemontypes'] as List)
+                        .map(
+                            (type) => type['pokemon_v2_type']['name'] as String)
+                        .toList(),
+                    generation: pokemonData['pokemon_v2_pokemonspecy']
+                        ['pokemon_v2_generation']['name'],
+                  );
+                }).toList();
 
                 if (pokemons.isEmpty) {
-                  return const Center(child: Text('No se encontraron Pokémon.'));
+                  return const Center(
+                      child: Text('No se encontraron Pokémon.'));
                 }
 
                 return GridView.builder(
@@ -143,12 +204,11 @@ class _PokemonListPageState extends State<PokemonListPage> with TickerProviderSt
                   itemCount: pokemons.length,
                   itemBuilder: (context, index) {
                     final pokemon = pokemons[index];
-                    final pokemonId = pokemon['id'];
-                    final pokemonName = pokemon['name'];
-                    final pokemonTypes = pokemon['pokemon_v2_pokemontypes'] as List;
-                    final primaryType = pokemonTypes.isNotEmpty ? pokemonTypes[0]['pokemon_v2_type']['name'] : 'normal';
+                    final primaryType =
+                        pokemon.types.isNotEmpty ? pokemon.types[0] : 'normal';
                     final color = typeColors[primaryType] ?? Colors.grey;
-                    final imageUrl = 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/$pokemonId.png';
+                    final imageUrl =
+                        'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/${pokemon.id}.png';
 
                     final animationController = AnimationController(
                       vsync: this,
@@ -173,7 +233,8 @@ class _PokemonListPageState extends State<PokemonListPage> with TickerProviderSt
                             Navigator.push(
                               context,
                               MaterialPageRoute(
-                                builder: (context) => PokemonDetailPage(pokemonId: pokemonId),
+                                builder: (context) =>
+                                    PokemonDetailPage(pokemonId: pokemon.id),
                               ),
                             );
                           },
@@ -190,14 +251,14 @@ class _PokemonListPageState extends State<PokemonListPage> with TickerProviderSt
                                 Image.network(imageUrl, height: 60, width: 60),
                                 const SizedBox(height: 6),
                                 Text(
-                                  '#$pokemonId $pokemonName',
+                                  '#${pokemon.id} ${pokemon.name}',
                                   style: TextStyle(
                                     fontFamily: 'DiaryOfAn8BitMage',
                                     fontWeight: FontWeight.bold,
                                   ),
                                 ),
                                 Text(
-                                  pokemonTypes.map((type) => type['pokemon_v2_type']['name']).join(', '),
+                                  pokemon.types.join(', '),
                                   style: TextStyle(
                                     fontFamily: 'DiaryOfAn8BitMage',
                                     color: Colors.black54,

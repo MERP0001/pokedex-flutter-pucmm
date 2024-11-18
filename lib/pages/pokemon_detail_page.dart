@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:graphql_flutter/graphql_flutter.dart';
 
+import 'Pokemon.dart';
+
 class PokemonDetailPage extends StatefulWidget {
   final int pokemonId;
 
@@ -10,7 +12,8 @@ class PokemonDetailPage extends StatefulWidget {
   _PokemonDetailPageState createState() => _PokemonDetailPageState();
 }
 
-class _PokemonDetailPageState extends State<PokemonDetailPage> with SingleTickerProviderStateMixin {
+class _PokemonDetailPageState extends State<PokemonDetailPage>
+    with SingleTickerProviderStateMixin {
   late AnimationController _controller;
   late Animation<Offset> _offsetAnimation;
   double _opacity = 0.0;
@@ -62,7 +65,6 @@ class _PokemonDetailPageState extends State<PokemonDetailPage> with SingleTicker
                 name
                 height
                 weight
-                base_experience
                 pokemon_v2_pokemontypes {
                   pokemon_v2_type {
                     name
@@ -84,11 +86,6 @@ class _PokemonDetailPageState extends State<PokemonDetailPage> with SingleTicker
                     name
                   }
                 }
-                pokemon_v2_pokemonspecy {
-                  pokemon_v2_generation {
-                    name
-                  }
-                }
               }
             }
           '''),
@@ -103,28 +100,31 @@ class _PokemonDetailPageState extends State<PokemonDetailPage> with SingleTicker
             return const Center(child: CircularProgressIndicator());
           }
 
-          final pokemon = result.data?['pokemon_v2_pokemon_by_pk'];
-          final name = pokemon['name'];
-
-          final types = (pokemon['pokemon_v2_pokemontypes'] as List?)
-              ?.map((type) => type['pokemon_v2_type']['name'])
-              .join(', ') ?? 'No types available';
-
-          final height = pokemon['height'];
-          final weight = pokemon['weight'];
-
-          final abilities = (pokemon['pokemon_v2_pokemonabilities'] as List?)
-              ?.map((ability) => ability['pokemon_v2_ability']['name'])
-              .join(', ') ?? 'No abilities available';
-
-          final stats = (pokemon['pokemon_v2_pokemonstats'] as List?)
-              ?.map((stat) => '${stat['pokemon_v2_stat']['name']}: ${stat['base_stat']}')
-              .join('\n') ?? 'No stats available';
-
-          final moves = (pokemon['pokemon_v2_pokemonmoves'] as List?)
-              ?.map((move) => move['pokemon_v2_move']['name'])
-              .take(10)
-              .join(', ') ?? 'No moves available';
+          final pokemonData = result.data?['pokemon_v2_pokemon_by_pk'];
+          final pokemon = Pokemon(
+            id: pokemonData['id'],
+            name: pokemonData['name'],
+            types: (pokemonData['pokemon_v2_pokemontypes'] as List?)
+                    ?.map((type) => type['pokemon_v2_type']['name'])
+                    .join(', ') ??
+                'No types available',
+            height: pokemonData['height'].toDouble(),
+            weight: pokemonData['weight'].toDouble(),
+            abilities: (pokemonData['pokemon_v2_pokemonabilities'] as List?)
+                    ?.map((ability) => ability['pokemon_v2_ability']['name'])
+                    .join(', ') ??
+                'No abilities available',
+            stats: (pokemonData['pokemon_v2_pokemonstats'] as List?)
+                    ?.map((stat) =>
+                        '${stat['pokemon_v2_stat']['name']}: ${stat['base_stat']}')
+                    .join('\n') ??
+                'No stats available',
+            moves: (pokemonData['pokemon_v2_pokemonmoves'] as List?)
+                    ?.map((move) => move['pokemon_v2_move']['name'])
+                    .take(10)
+                    .join(', ') ??
+                'No moves available',
+          );
 
           return Padding(
             padding: const EdgeInsets.all(16.0),
@@ -139,17 +139,20 @@ class _PokemonDetailPageState extends State<PokemonDetailPage> with SingleTicker
                       child: Column(
                         children: [
                           Image.network(
-                            'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/${widget.pokemonId}.png',
+                            'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/${pokemon.id}.png',
                             height: 200,
                             fit: BoxFit.cover,
                           ),
                           const SizedBox(height: 16),
                           Text(
-                            name.toUpperCase(),
-                            style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                              fontFamily: 'DiaryOfAn8BitMage',
-                              fontWeight: FontWeight.bold,
-                            ),
+                            pokemon.name.toUpperCase(),
+                            style: Theme.of(context)
+                                .textTheme
+                                .headlineSmall
+                                ?.copyWith(
+                                  fontFamily: 'DiaryOfAn8BitMage',
+                                  fontWeight: FontWeight.bold,
+                                ),
                           ),
                         ],
                       ),
@@ -161,7 +164,8 @@ class _PokemonDetailPageState extends State<PokemonDetailPage> with SingleTicker
                     opacity: _opacity,
                     duration: const Duration(milliseconds: 1500),
                     child: Card(
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                      shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12)),
                       color: Colors.blue.shade50,
                       child: Padding(
                         padding: const EdgeInsets.all(16.0),
@@ -176,7 +180,7 @@ class _PokemonDetailPageState extends State<PokemonDetailPage> with SingleTicker
                               ),
                             ),
                             Text(
-                              types,
+                              pokemon.types,
                               style: const TextStyle(
                                 fontFamily: 'DiaryOfAn8BitMage',
                                 fontSize: 16,
@@ -196,7 +200,8 @@ class _PokemonDetailPageState extends State<PokemonDetailPage> with SingleTicker
                       children: [
                         Expanded(
                           child: Card(
-                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                            shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(12)),
                             color: Colors.green.shade50,
                             child: Padding(
                               padding: const EdgeInsets.all(16.0),
@@ -210,7 +215,7 @@ class _PokemonDetailPageState extends State<PokemonDetailPage> with SingleTicker
                                     ),
                                   ),
                                   Text(
-                                    '$height m',
+                                    '${pokemon.height} m',
                                     style: const TextStyle(
                                       fontFamily: 'DiaryOfAn8BitMage',
                                       fontSize: 16,
@@ -224,7 +229,8 @@ class _PokemonDetailPageState extends State<PokemonDetailPage> with SingleTicker
                         const SizedBox(width: 16),
                         Expanded(
                           child: Card(
-                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                            shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(12)),
                             color: Colors.green.shade50,
                             child: Padding(
                               padding: const EdgeInsets.all(16.0),
@@ -238,7 +244,7 @@ class _PokemonDetailPageState extends State<PokemonDetailPage> with SingleTicker
                                     ),
                                   ),
                                   Text(
-                                    '$weight kg',
+                                    '${pokemon.weight} kg',
                                     style: const TextStyle(
                                       fontFamily: 'DiaryOfAn8BitMage',
                                       fontSize: 16,
@@ -258,7 +264,8 @@ class _PokemonDetailPageState extends State<PokemonDetailPage> with SingleTicker
                     opacity: _opacity,
                     duration: const Duration(milliseconds: 1500),
                     child: Card(
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                      shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12)),
                       color: Colors.orange.shade50,
                       child: Padding(
                         padding: const EdgeInsets.all(16.0),
@@ -273,7 +280,7 @@ class _PokemonDetailPageState extends State<PokemonDetailPage> with SingleTicker
                               ),
                             ),
                             Text(
-                              abilities,
+                              pokemon.abilities,
                               style: const TextStyle(
                                 fontFamily: 'DiaryOfAn8BitMage',
                                 fontSize: 16,
@@ -290,7 +297,8 @@ class _PokemonDetailPageState extends State<PokemonDetailPage> with SingleTicker
                     opacity: _opacity,
                     duration: const Duration(milliseconds: 1500),
                     child: Card(
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                      shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12)),
                       color: Colors.purple.shade50,
                       child: Padding(
                         padding: const EdgeInsets.all(16.0),
@@ -305,7 +313,7 @@ class _PokemonDetailPageState extends State<PokemonDetailPage> with SingleTicker
                               ),
                             ),
                             Text(
-                              stats,
+                              pokemon.stats,
                               style: const TextStyle(
                                 fontFamily: 'DiaryOfAn8BitMage',
                                 fontSize: 16,
@@ -322,7 +330,8 @@ class _PokemonDetailPageState extends State<PokemonDetailPage> with SingleTicker
                     opacity: _opacity,
                     duration: const Duration(milliseconds: 1500),
                     child: Card(
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                      shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12)),
                       color: Colors.yellow.shade50,
                       child: Padding(
                         padding: const EdgeInsets.all(16.0),
@@ -337,7 +346,7 @@ class _PokemonDetailPageState extends State<PokemonDetailPage> with SingleTicker
                               ),
                             ),
                             Text(
-                              moves,
+                              pokemon.moves,
                               style: const TextStyle(
                                 fontFamily: 'DiaryOfAn8BitMage',
                                 fontSize: 16,
