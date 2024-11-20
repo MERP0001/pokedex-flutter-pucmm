@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:graphql_flutter/graphql_flutter.dart';
+import 'PokemonQueries.dart';
 import 'pokemon_detail_page.dart';
 
 class Pokemon {
@@ -138,29 +139,8 @@ class _PokemonListPageState extends State<PokemonListPage>
           Expanded(
             child: Query(
               options: QueryOptions(
-                document: gql('''
-                  query GetPokemons(\$type: String, \$generation: String) {
-                    pokemon_v2_pokemon(
-                      where: {
-                        ${selectedType != null ? 'pokemon_v2_pokemontypes: { pokemon_v2_type: { name: { _eq: \$type } } }' : ''}
-                        ${selectedGeneration != null ? 'pokemon_v2_pokemonspecy: { pokemon_v2_generation: { name: { _eq: \$generation } } }' : ''}
-                      }
-                    ) {
-                      id
-                      name
-                      pokemon_v2_pokemontypes {
-                        pokemon_v2_type {
-                          name
-                        }
-                      }
-                      pokemon_v2_pokemonspecy {
-                        pokemon_v2_generation {
-                          name
-                        }
-                      }
-                    }
-                  }
-                '''),
+                document: gql(PokemonQueries.getPokemons(
+                    selectedType, selectedGeneration)),
                 variables: {
                   if (selectedType != null) 'type': selectedType,
                   if (selectedGeneration != null)

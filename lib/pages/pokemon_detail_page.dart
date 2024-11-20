@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:graphql_flutter/graphql_flutter.dart';
 
 import 'Pokemon.dart';
+import 'PokemonQueries.dart';
 
 class PokemonDetailPage extends StatefulWidget {
   final int pokemonId;
@@ -58,37 +59,7 @@ class _PokemonDetailPageState extends State<PokemonDetailPage>
       ),
       body: Query(
         options: QueryOptions(
-          document: gql('''
-            query GetPokemonDetails(\$id: Int!) {
-              pokemon_v2_pokemon_by_pk(id: \$id) {
-                id
-                name
-                height
-                weight
-                pokemon_v2_pokemontypes {
-                  pokemon_v2_type {
-                    name
-                  }
-                }
-                pokemon_v2_pokemonabilities {
-                  pokemon_v2_ability {
-                    name
-                  }
-                }
-                pokemon_v2_pokemonstats {
-                  pokemon_v2_stat {
-                    name
-                  }
-                  base_stat
-                }
-                pokemon_v2_pokemonmoves {
-                  pokemon_v2_move {
-                    name
-                  }
-                }
-              }
-            }
-          '''),
+          document: gql(PokemonQueries.getPokemonDetails),
           variables: {'id': widget.pokemonId},
         ),
         builder: (QueryResult result, {fetchMore, refetch}) {
