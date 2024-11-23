@@ -72,6 +72,21 @@ class _PokemonDetailPageState extends State<PokemonDetailPage>
           }
 
           final pokemonData = result.data?['pokemon_v2_pokemon_by_pk'];
+          final evolutionsData = pokemonData['pokemon_v2_pokemonspecy']
+                  ['pokemon_v2_evolutionchain']['pokemon_v2_pokemonspecies']
+              as List<dynamic>;
+
+          final evolutions = evolutionsData.map((evolutionData) {
+            return {
+              'id': evolutionData['id'],
+              'name': evolutionData['name'],
+              'types': (evolutionData['pokemon_v2_pokemons'][0]
+                      ['pokemon_v2_pokemontypes'] as List)
+                  .map((type) => type['pokemon_v2_type']['name'] as String)
+                  .toList(),
+            };
+          }).toList();
+
           final pokemon = Pokemon(
             id: pokemonData['id'],
             name: pokemonData['name'],
@@ -323,6 +338,64 @@ class _PokemonDetailPageState extends State<PokemonDetailPage>
                                 fontSize: 16,
                               ),
                             ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  // Sección de Evoluciones
+                  AnimatedOpacity(
+                    opacity: _opacity,
+                    duration: const Duration(milliseconds: 1500),
+                    child: Card(
+                      shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12)),
+                      color: Colors.teal.shade50,
+                      child: Padding(
+                        padding: const EdgeInsets.all(16.0),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            const Text(
+                              'Evoluciones',
+                              style: TextStyle(
+                                fontFamily: 'DiaryOfAn8BitMage',
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                            if (evolutions.isEmpty)
+                              const Text(
+                                'No evolutions available',
+                                style: TextStyle(
+                                  fontFamily: 'DiaryOfAn8BitMage',
+                                  fontSize: 16,
+                                ),
+                              )
+                            else
+                              ...evolutions.map((evolution) {
+                                return ListTile(
+                                  leading: Image.network(
+                                    'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/${evolution['id']}.png',
+                                    height: 40,
+                                    width: 40,
+                                  ),
+                                  title: Text(
+                                    evolution['name'],
+                                    style: const TextStyle(
+                                      fontFamily: 'DiaryOfAn8BitMage',
+                                      fontSize: 16,
+                                    ),
+                                  ),
+                                  subtitle: Text(
+                                    (evolution['types'] as List).join(', '),
+                                    style: const TextStyle(
+                                      fontFamily: 'DiaryOfAn8BitMage',
+                                      fontSize: 14,
+                                    ),
+                                  ),
+                                );
+                              }).toList(),
                           ],
                         ),
                       ),

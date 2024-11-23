@@ -25,6 +25,27 @@ class PokemonQueries {
     ''';
   }
 
+  static String getAllPokemons() {
+    return '''
+      query GetAllPokemons {
+        pokemon_v2_pokemon {
+          id
+          name
+          pokemon_v2_pokemontypes {
+            pokemon_v2_type {
+              name
+            }
+          }
+          pokemon_v2_pokemonspecy {
+            pokemon_v2_generation {
+              name
+            }
+          }
+        }
+      }
+    ''';
+  }
+
   static const String getPokemonDetails = '''
     query GetPokemonDetails(\$id: Int!) {
       pokemon_v2_pokemon_by_pk(id: \$id) {
@@ -51,6 +72,22 @@ class PokemonQueries {
         pokemon_v2_pokemonmoves {
           pokemon_v2_move {
             name
+          }
+        }
+        pokemon_v2_pokemonspecy {
+          pokemon_v2_evolutionchain {
+            pokemon_v2_pokemonspecies {
+              id
+              name
+              evolves_from_species_id
+              pokemon_v2_pokemons {
+                pokemon_v2_pokemontypes {
+                  pokemon_v2_type {
+                    name
+                  }
+                }
+              }
+            }
           }
         }
       }

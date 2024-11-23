@@ -28,6 +28,9 @@ class _PokemonListPageState extends State<PokemonListPage>
     with TickerProviderStateMixin {
   String? selectedType;
   String? selectedGeneration;
+  final TextEditingController searchController = TextEditingController();
+  List<Pokemon> allPokemons = [];
+  List<Pokemon> filteredPokemons = [];
 
   final List<String?> types = [
     null,
@@ -86,6 +89,28 @@ class _PokemonListPageState extends State<PokemonListPage>
   };
 
   @override
+  void initState() {
+    super.initState();
+    searchController.addListener(_filterPokemons);
+  }
+
+  void _filterPokemons() {
+    final query = searchController.text.toLowerCase();
+    setState(() {
+      filteredPokemons = allPokemons.where((pokemon) {
+        return pokemon.name.toLowerCase().contains(query);
+      }).toList();
+    });
+  }
+
+  void _clearSearch() {
+    searchController.clear();
+    setState(() {
+      filteredPokemons = List.from(allPokemons);
+    });
+  }
+
+  @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
@@ -100,38 +125,64 @@ class _PokemonListPageState extends State<PokemonListPage>
           Padding(
             padding:
                 const EdgeInsets.symmetric(horizontal: 12.0, vertical: 8.0),
-            child: Row(
+            child: Column(
               children: [
-                Expanded(
-                  child: DropdownButton<String?>(
-                    hint: const Text("Selecciona Tipo"),
-                    value: selectedType,
-                    items: types.map((String? type) {
-                      return DropdownMenuItem<String?>(
-                          value: type, child: Text(type ?? 'Todos'));
-                    }).toList(),
-                    onChanged: (String? newValue) {
-                      setState(() {
-                        selectedType = newValue;
-                      });
-                    },
-                  ),
+                Row(
+                  children: [
+                    Expanded(
+                      child: TextField(
+                        controller: searchController,
+                        decoration: const InputDecoration(
+                          labelText: 'Buscar Pokémon',
+                          prefixIcon: Icon(Icons.search),
+                        ),
+                        onChanged: (value) {
+                          setState(() {
+                            // Trigger a rebuild to update the query
+                          });
+                        },
+                      ),
+                    ),
+                    IconButton(
+                      icon: const Icon(Icons.clear),
+                      onPressed: _clearSearch,
+                    ),
+                  ],
                 ),
-                Expanded(
-                  child: DropdownButton<String?>(
-                    hint: const Text("Selecciona Generación"),
-                    value: selectedGeneration,
-                    items: generations.map((String? generation) {
-                      return DropdownMenuItem<String?>(
-                          value: generation,
-                          child: Text(generation ?? 'Todas'));
-                    }).toList(),
-                    onChanged: (String? newValue) {
-                      setState(() {
-                        selectedGeneration = newValue;
-                      });
-                    },
-                  ),
+                Row(
+                  children: [
+                    Expanded(
+                      child: DropdownButton<String?>(
+                        hint: const Text("Selecciona Tipo"),
+                        value: selectedType,
+                        items: types.map((String? type) {
+                          return DropdownMenuItem<String?>(
+                              value: type, child: Text(type ?? 'Todos'));
+                        }).toList(),
+                        onChanged: (String? newValue) {
+                          setState(() {
+                            selectedType = newValue;
+                          });
+                        },
+                      ),
+                    ),
+                    Expanded(
+                      child: DropdownButton<String?>(
+                        hint: const Text("Selecciona Generación"),
+                        value: selectedGeneration,
+                        items: generations.map((String? generation) {
+                          return DropdownMenuItem<String?>(
+                              value: generation,
+                              child: Text(generation ?? 'Todas'));
+                        }).toList(),
+                        onChanged: (String? newValue) {
+                          setState(() {
+                            selectedGeneration = newValue;
+                          });
+                        },
+                      ),
+                    ),
+                  ],
                 ),
               ],
             ),
@@ -158,7 +209,7 @@ class _PokemonListPageState extends State<PokemonListPage>
 
                 final pokemonsData =
                     result.data?['pokemon_v2_pokemon'] as List<dynamic>? ?? [];
-                final pokemons = pokemonsData.map((pokemonData) {
+                allPokemons = pokemonsData.map((pokemonData) {
                   return Pokemon(
                     id: pokemonData['id'],
                     name: pokemonData['name'],
@@ -171,7 +222,11 @@ class _PokemonListPageState extends State<PokemonListPage>
                   );
                 }).toList();
 
-                if (pokemons.isEmpty) {
+                if (filteredPokemons.isEmpty) {
+                  filteredPokemons = List.from(allPokemons);
+                }
+
+                if (filteredPokemons.isEmpty) {
                   return const Center(
                       child: Text('No se encontraron Pokémon.'));
                 }
@@ -181,9 +236,9 @@ class _PokemonListPageState extends State<PokemonListPage>
                     crossAxisCount: 2,
                     childAspectRatio: 2 / 3,
                   ),
-                  itemCount: pokemons.length,
+                  itemCount: filteredPokemons.length,
                   itemBuilder: (context, index) {
-                    final pokemon = pokemons[index];
+                    final pokemon = filteredPokemons[index];
                     final primaryType =
                         pokemon.types.isNotEmpty ? pokemon.types[0] : 'normal';
                     final color = typeColors[primaryType] ?? Colors.grey;
@@ -232,14 +287,14 @@ class _PokemonListPageState extends State<PokemonListPage>
                                 const SizedBox(height: 6),
                                 Text(
                                   '#${pokemon.id} ${pokemon.name}',
-                                  style: TextStyle(
+                                  style: const TextStyle(
                                     fontFamily: 'DiaryOfAn8BitMage',
                                     fontWeight: FontWeight.bold,
                                   ),
                                 ),
                                 Text(
                                   pokemon.types.join(', '),
-                                  style: TextStyle(
+                                  style: const TextStyle(
                                     fontFamily: 'DiaryOfAn8BitMage',
                                     color: Colors.black54,
                                   ),
