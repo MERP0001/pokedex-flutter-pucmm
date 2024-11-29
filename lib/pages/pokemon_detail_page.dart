@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:graphql_flutter/graphql_flutter.dart';
+import 'package:audioplayers/audioplayers.dart'; // Importa el paquete audioplayers
 
 import 'Pokemon.dart';
 import 'PokemonQueries.dart';
@@ -18,6 +19,8 @@ class _PokemonDetailPageState extends State<PokemonDetailPage>
   late AnimationController _controller;
   late Animation<Offset> _offsetAnimation;
   double _opacity = 0.0;
+  final AudioPlayer _audioPlayer =
+      AudioPlayer(); // Crea una instancia de AudioPlayer
 
   @override
   void initState() {
@@ -44,7 +47,14 @@ class _PokemonDetailPageState extends State<PokemonDetailPage>
   @override
   void dispose() {
     _controller.dispose();
+    _audioPlayer.dispose(); // Asegúrate de liberar los recursos del AudioPlayer
     super.dispose();
+  }
+
+  Future<void> _playCry(Pokemon pokemon) async {
+    final url =
+        'https://play.pokemonshowdown.com/audio/cries/${pokemon.name.toLowerCase()}.mp3'; // URL del cry del Pokémon
+    await _audioPlayer.play(url); // Reproduce el sonido desde la URL
   }
 
   @override
@@ -76,7 +86,10 @@ class _PokemonDetailPageState extends State<PokemonDetailPage>
                   ['pokemon_v2_evolutionchain']['pokemon_v2_pokemonspecies']
               as List<dynamic>;
 
-          final evolutions = evolutionsData.map((evolutionData) {
+          // Exclude the current Pokémon and sort evolutions by ID
+          final evolutions = evolutionsData
+              .where((evolutionData) => evolutionData['id'] != widget.pokemonId)
+              .map((evolutionData) {
             return {
               'id': evolutionData['id'],
               'name': evolutionData['name'],
@@ -85,7 +98,8 @@ class _PokemonDetailPageState extends State<PokemonDetailPage>
                   .map((type) => type['pokemon_v2_type']['name'] as String)
                   .toList(),
             };
-          }).toList();
+          }).toList()
+            ..sort((a, b) => a['id'].compareTo(b['id'])); // Sort by ID
 
           final pokemon = Pokemon(
             id: pokemonData['id'],
@@ -124,10 +138,14 @@ class _PokemonDetailPageState extends State<PokemonDetailPage>
                     child: Center(
                       child: Column(
                         children: [
-                          Image.network(
-                            'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/${pokemon.id}.png',
-                            height: 200,
-                            fit: BoxFit.cover,
+                          GestureDetector(
+                            onTap: () => _playCry(
+                                pokemon), // Reproduce el cry al hacer clic
+                            child: Image.network(
+                              'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/${pokemon.id}.png',
+                              height: 200,
+                              fit: BoxFit.cover,
+                            ),
                           ),
                           const SizedBox(height: 16),
                           Text(
@@ -394,6 +412,15 @@ class _PokemonDetailPageState extends State<PokemonDetailPage>
                                       fontSize: 14,
                                     ),
                                   ),
+                                  onTap: () {
+                                    Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                        builder: (context) => PokemonDetailPage(
+                                            pokemonId: evolution['id']),
+                                      ),
+                                    );
+                                  },
                                 );
                               }).toList(),
                           ],
