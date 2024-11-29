@@ -95,6 +95,7 @@ flutter:
 
   assets:
     - assets/fonts/DiaryOfAn8BitMage-lYDD.ttf
+    - assets/icons/
 
   fonts:
     - family: DiaryOfAn8BitMage

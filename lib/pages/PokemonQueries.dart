@@ -1,12 +1,19 @@
 // lib/queries/pokemon_queries.dart
 
 class PokemonQueries {
-  static String getPokemons(String? type, String? generation) {
-    return '''
-      query GetPokemons {
+  static String getPokemons(List<String>? types, List<String>? generations) {
+    final typeFilter = types != null && types.isNotEmpty
+        ? 'pokemon_v2_pokemontypes: { pokemon_v2_type: { name: { _in: \$types } } }'
+        : '';
+    final generationFilter = generations != null && generations.isNotEmpty
+        ? 'pokemon_v2_pokemonspecy: { pokemon_v2_generation: { name: { _in: \$generations } } }'
+        : '';
+
+    final query = '''
+      query GetPokemons(\$types: [String!], \$generations: [String!]) {
         pokemon_v2_pokemon(where: {
-          ${type != null ? 'pokemon_v2_pokemontypes: { pokemon_v2_type: { name: { _eq: "$type" } } }' : ''}
-          ${generation != null ? 'pokemon_v2_pokemonspecy: { pokemon_v2_generation: { name: { _eq: "$generation" } } }' : ''}
+          $typeFilter
+          $generationFilter
         }) {
           id
           name
@@ -23,6 +30,8 @@ class PokemonQueries {
         }
       }
     ''';
+    print('Generated Query: $query');
+    return query;
   }
 
   static String getAllPokemons() {
