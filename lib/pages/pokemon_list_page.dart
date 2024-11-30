@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:graphql_flutter/graphql_flutter.dart';
-import 'PokemonQueries.dart';
 import 'pokemon_detail_page.dart';
+import 'favorites_page.dart'; // Importa la nueva página de favoritos
+import 'PokemonQueries.dart';
 
 class Pokemon {
   final int id;
@@ -193,11 +194,9 @@ class _PokemonListPageState extends State<PokemonListPage>
 
   @override
   Widget build(BuildContext context) {
-    // Determine if we need to use filters
     final bool useFilters =
         selectedTypes.isNotEmpty || selectedGenerations.isNotEmpty;
 
-    // Choose the appropriate query and variables
     final String query = useFilters
         ? PokemonQueries.getPokemons(selectedTypes, selectedGenerations)
         : PokemonQueries.getAllPokemons();
@@ -217,6 +216,19 @@ class _PokemonListPageState extends State<PokemonListPage>
           style: TextStyle(fontFamily: 'DiaryOfAn8BitMage'),
         ),
         backgroundColor: Theme.of(context).colorScheme.inversePrimary,
+        actions: [
+          IconButton(
+            icon: Icon(Icons.star),
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => FavoritesPage(),
+                ),
+              );
+            },
+          ),
+        ],
       ),
       body: Container(
         decoration: BoxDecoration(

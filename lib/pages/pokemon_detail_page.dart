@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:graphql_flutter/graphql_flutter.dart';
-import 'package:audioplayers/audioplayers.dart'; // Importa el paquete audioplayers
+import 'package:audioplayers/audioplayers.dart';
+import 'package:shared_preferences/shared_preferences.dart'; // Importa shared_preferences
 
 import 'Pokemon.dart';
 import 'PokemonQueries.dart';
@@ -19,8 +20,8 @@ class _PokemonDetailPageState extends State<PokemonDetailPage>
   late AnimationController _controller;
   late Animation<Offset> _offsetAnimation;
   double _opacity = 0.0;
-  final AudioPlayer _audioPlayer =
-      AudioPlayer(); // Crea una instancia de AudioPlayer
+  final AudioPlayer _audioPlayer = AudioPlayer();
+  bool isFavorite = false;
 
   @override
   void initState() {
@@ -35,51 +36,46 @@ class _PokemonDetailPageState extends State<PokemonDetailPage>
       end: Offset.zero,
     ).animate(CurvedAnimation(parent: _controller, curve: Curves.easeOut));
 
-    // Iniciar la animación de opacidad
     Future.delayed(const Duration(milliseconds: 300), () {
       setState(() {
         _opacity = 1.0;
         _controller.forward();
       });
     });
+
+    _loadFavoriteStatus();
+  }
+
+  Future<void> _loadFavoriteStatus() async {
+    final prefs = await SharedPreferences.getInstance();
+    setState(() {
+      isFavorite = prefs.getBool('favorite_${widget.pokemonId}') ?? false;
+    });
+  }
+
+  Future<void> _toggleFavorite() async {
+    final prefs = await SharedPreferences.getInstance();
+    setState(() {
+      isFavorite = !isFavorite;
+      prefs.setBool('favorite_${widget.pokemonId}', isFavorite);
+    });
   }
 
   @override
   void dispose() {
     _controller.dispose();
-    _audioPlayer.dispose(); // Asegúrate de liberar los recursos del AudioPlayer
+    _audioPlayer.dispose();
     super.dispose();
   }
 
   Future<void> _playCry(Pokemon pokemon) async {
     final url =
-        'https://play.pokemonshowdown.com/audio/cries/${pokemon.name.toLowerCase()}.mp3'; // URL del cry del Pokémon
-    await _audioPlayer.play(url); // Reproduce el sonido desde la URL
+        'https://play.pokemonshowdown.com/audio/cries/${pokemon.name.toLowerCase()}.mp3';
+    await _audioPlayer.play(url);
   }
 
   @override
   Widget build(BuildContext context) {
-    final typeColors = {
-      'Normal': Colors.grey,
-      'Fire': Colors.red,
-      'Water': Colors.blue,
-      'Electric': Colors.yellow,
-      'Grass': Colors.green,
-      'Ice': Colors.cyan,
-      'Fighting': Colors.red,
-      'Poison': Colors.purple,
-      'Ground': Colors.brown,
-      'Flying': Colors.blue,
-      'Psychic': Colors.pink,
-      'Bug': Colors.green,
-      'Rock': Colors.brown,
-      'Ghost': Colors.purple,
-      'Dragon': Colors.purple,
-      'Dark': Colors.black,
-      'Steel': Colors.grey,
-      'Fairy': Colors.pink,
-    };
-
     return Scaffold(
       appBar: AppBar(
         title: const Text(
@@ -87,6 +83,15 @@ class _PokemonDetailPageState extends State<PokemonDetailPage>
           style: TextStyle(fontFamily: 'DiaryOfAn8BitMage'),
         ),
         backgroundColor: Theme.of(context).colorScheme.inversePrimary,
+        actions: [
+          IconButton(
+            icon: Icon(
+              isFavorite ? Icons.favorite : Icons.favorite_border,
+              color: isFavorite ? Colors.red : null,
+            ),
+            onPressed: _toggleFavorite,
+          ),
+        ],
       ),
       body: Query(
         options: QueryOptions(
@@ -107,10 +112,26 @@ class _PokemonDetailPageState extends State<PokemonDetailPage>
                   ['pokemon_v2_evolutionchain']['pokemon_v2_pokemonspecies']
               as List<dynamic>;
 
-          // Exclude the current Pokémon and sort evolutions by ID
+          final isEeveelution = [
+            'vaporeon',
+            'jolteon',
+            'flareon',
+            'espeon',
+            'umbreon',
+            'leafeon',
+            'glaceon',
+            'sylveon'
+          ].contains(pokemonData['name'].toLowerCase());
+
           final evolutions = evolutionsData
               .where((evolutionData) => evolutionData['id'] != widget.pokemonId)
-              .map((evolutionData) {
+              .where((evolutionData) {
+            if (isEeveelution) {
+              return evolutionData['name'].toLowerCase() == 'eevee';
+            } else {
+              return true;
+            }
+          }).map((evolutionData) {
             return {
               'id': evolutionData['id'],
               'name': evolutionData['name'],
@@ -120,7 +141,7 @@ class _PokemonDetailPageState extends State<PokemonDetailPage>
                   .toList(),
             };
           }).toList()
-            ..sort((a, b) => a['id'].compareTo(b['id'])); // Sort by ID
+            ..sort((a, b) => a['id'].compareTo(b['id']));
 
           final pokemon = Pokemon(
             id: pokemonData['id'],
@@ -147,337 +168,301 @@ class _PokemonDetailPageState extends State<PokemonDetailPage>
                 'No moves available',
           );
 
-          final backgroundColor =
-              typeColors[pokemon.types.split(', ').first] ?? Colors.grey;
-
-          return Container(
-            color: backgroundColor
-                .withOpacity(0.1), // Background color based on type
-            child: Padding(
-              padding: const EdgeInsets.all(16.0),
-              child: SingleChildScrollView(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    // Imagen y nombre animados
-                    SlideTransition(
-                      position: _offsetAnimation,
-                      child: Center(
+          return Padding(
+            padding: const EdgeInsets.all(16.0),
+            child: SingleChildScrollView(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  SlideTransition(
+                    position: _offsetAnimation,
+                    child: Center(
+                      child: Column(
+                        children: [
+                          GestureDetector(
+                            onTap: () => _playCry(pokemon),
+                            child: Image.network(
+                              'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/${pokemon.id}.png',
+                              height: 200,
+                              fit: BoxFit.cover,
+                            ),
+                          ),
+                          const SizedBox(height: 16),
+                          Text(
+                            pokemon.name.toUpperCase(),
+                            style: Theme.of(context)
+                                .textTheme
+                                .headlineSmall
+                                ?.copyWith(
+                                  fontFamily: 'DiaryOfAn8BitMage',
+                                  fontWeight: FontWeight.bold,
+                                ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  AnimatedOpacity(
+                    opacity: _opacity,
+                    duration: const Duration(milliseconds: 1500),
+                    child: Card(
+                      shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12)),
+                      color: Colors.blue.shade50,
+                      child: Padding(
+                        padding: const EdgeInsets.all(16.0),
                         child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            GestureDetector(
-                              onTap: () => _playCry(
-                                  pokemon), // Reproduce el cry al hacer clic
-                              child: Image.network(
-                                'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/${pokemon.id}.png',
-                                height: 200,
-                                fit: BoxFit.cover,
+                            const Text(
+                              'Tipo',
+                              style: TextStyle(
+                                fontFamily: 'DiaryOfAn8BitMage',
+                                fontWeight: FontWeight.bold,
                               ),
                             ),
-                            const SizedBox(height: 16),
                             Text(
-                              pokemon.name.toUpperCase(),
-                              style: Theme.of(context)
-                                  .textTheme
-                                  .headlineSmall
-                                  ?.copyWith(
-                                    fontFamily: 'DiaryOfAn8BitMage',
-                                    fontWeight: FontWeight.bold,
-                                  ),
+                              pokemon.types,
+                              style: const TextStyle(
+                                fontFamily: 'DiaryOfAn8BitMage',
+                                fontSize: 16,
+                              ),
                             ),
                           ],
                         ),
                       ),
                     ),
-                    const SizedBox(height: 16),
-                    // Sección de Tipo con animación de opacidad
-                    AnimatedOpacity(
-                      opacity: _opacity,
-                      duration: const Duration(milliseconds: 1500),
-                      child: Card(
-                        shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12)),
-                        color: Colors.blue.shade100, // Stronger color
-                        child: Padding(
-                          padding: const EdgeInsets.all(16.0),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              const Text(
-                                'Tipo',
-                                style: TextStyle(
-                                  fontFamily: 'DiaryOfAn8BitMage',
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
-                              Wrap(
-                                spacing: 8.0,
-                                children: pokemon.types.split(', ').map((type) {
-                                  final typeColor =
-                                      typeColors[type] ?? Colors.grey;
-                                  return Chip(
-                                    label: Row(
-                                      mainAxisSize: MainAxisSize.min,
-                                      children: [
-                                        Image.asset(
-                                          'assets/icons/${type}.png',
-                                          width: 24,
-                                          height: 24,
-                                        ),
-                                        const SizedBox(width: 4),
-                                        Text(
-                                          type,
-                                          style: const TextStyle(
-                                            color: Colors.white,
-                                            fontFamily: 'DiaryOfAn8BitMage',
-                                          ),
-                                        ),
-                                      ],
+                  ),
+                  const SizedBox(height: 16),
+                  AnimatedOpacity(
+                    opacity: _opacity,
+                    duration: const Duration(milliseconds: 1500),
+                    child: Row(
+                      children: [
+                        Expanded(
+                          child: Card(
+                            shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(12)),
+                            color: Colors.green.shade50,
+                            child: Padding(
+                              padding: const EdgeInsets.all(16.0),
+                              child: Column(
+                                children: [
+                                  const Text(
+                                    'Altura',
+                                    style: TextStyle(
+                                      fontFamily: 'DiaryOfAn8BitMage',
+                                      fontWeight: FontWeight.bold,
                                     ),
-                                    backgroundColor: typeColor,
-                                    shape: StadiumBorder(
-                                      side: BorderSide(color: typeColor),
-                                    ),
-                                  );
-                                }).toList(),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
-                    ),
-                    const SizedBox(height: 16),
-                    // Altura y peso con animación de opacidad
-                    AnimatedOpacity(
-                      opacity: _opacity,
-                      duration: const Duration(milliseconds: 1500),
-                      child: Card(
-                        shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12)),
-                        color: Colors.green.shade200, // Stronger color
-                        child: Padding(
-                          padding: const EdgeInsets.all(16.0),
-                          child: Column(
-                            children: [
-                              const Text(
-                                'Altura',
-                                style: TextStyle(
-                                  fontFamily: 'DiaryOfAn8BitMage',
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
-                              Text(
-                                '${pokemon.height} m',
-                                style: const TextStyle(
-                                  fontFamily: 'DiaryOfAn8BitMage',
-                                  fontSize: 16,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
-                    ),
-                    const SizedBox(width: 16),
-                    AnimatedOpacity(
-                      opacity: _opacity,
-                      duration: const Duration(milliseconds: 1500),
-                      child: Card(
-                        shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12)),
-                        color: Colors.green.shade200, // Stronger color
-                        child: Padding(
-                          padding: const EdgeInsets.all(16.0),
-                          child: Column(
-                            children: [
-                              const Text(
-                                'Peso',
-                                style: TextStyle(
-                                  fontFamily: 'DiaryOfAn8BitMage',
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
-                              Text(
-                                '${pokemon.weight} kg',
-                                style: const TextStyle(
-                                  fontFamily: 'DiaryOfAn8BitMage',
-                                  fontSize: 16,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
-                    ),
-                    const SizedBox(height: 16),
-                    // Sección de Habilidades con animación de opacidad
-                    AnimatedOpacity(
-                      opacity: _opacity,
-                      duration: const Duration(milliseconds: 1500),
-                      child: Card(
-                        shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12)),
-                        color: Colors.orange.shade50,
-                        child: Padding(
-                          padding: const EdgeInsets.all(16.0),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              const Text(
-                                'Habilidades',
-                                style: TextStyle(
-                                  fontFamily: 'DiaryOfAn8BitMage',
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
-                              Text(
-                                pokemon.abilities,
-                                style: const TextStyle(
-                                  fontFamily: 'DiaryOfAn8BitMage',
-                                  fontSize: 16,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
-                    ),
-                    const SizedBox(height: 16),
-                    // Sección de Estadísticas con animación de opacidad
-                    AnimatedOpacity(
-                      opacity: _opacity,
-                      duration: const Duration(milliseconds: 1500),
-                      child: Card(
-                        shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12)),
-                        color: Colors.purple.shade50,
-                        child: Padding(
-                          padding: const EdgeInsets.all(16.0),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              const Text(
-                                'Estadísticas',
-                                style: TextStyle(
-                                  fontFamily: 'DiaryOfAn8BitMage',
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
-                              Text(
-                                pokemon.stats,
-                                style: const TextStyle(
-                                  fontFamily: 'DiaryOfAn8BitMage',
-                                  fontSize: 16,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
-                    ),
-                    const SizedBox(height: 16),
-                    // Sección de Movimientos con animación de opacidad
-                    AnimatedOpacity(
-                      opacity: _opacity,
-                      duration: const Duration(milliseconds: 1500),
-                      child: Card(
-                        shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12)),
-                        color: Colors.yellow.shade50,
-                        child: Padding(
-                          padding: const EdgeInsets.all(16.0),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              const Text(
-                                'Movimientos (10 primeros)',
-                                style: TextStyle(
-                                  fontFamily: 'DiaryOfAn8BitMage',
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
-                              Text(
-                                pokemon.moves,
-                                style: const TextStyle(
-                                  fontFamily: 'DiaryOfAn8BitMage',
-                                  fontSize: 16,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
-                    ),
-                    const SizedBox(height: 16),
-                    // Sección de Evoluciones
-                    AnimatedOpacity(
-                      opacity: _opacity,
-                      duration: const Duration(milliseconds: 1500),
-                      child: Card(
-                        shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12)),
-                        color: Colors.teal.shade50,
-                        child: Padding(
-                          padding: const EdgeInsets.all(16.0),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              const Text(
-                                'Evoluciones',
-                                style: TextStyle(
-                                  fontFamily: 'DiaryOfAn8BitMage',
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
-                              if (evolutions.isEmpty)
-                                const Text(
-                                  'No evolutions available',
-                                  style: TextStyle(
-                                    fontFamily: 'DiaryOfAn8BitMage',
-                                    fontSize: 16,
                                   ),
-                                )
-                              else
-                                ...evolutions.map((evolution) {
-                                  return ListTile(
-                                    leading: Image.network(
-                                      'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/${evolution['id']}.png',
-                                      height: 40,
-                                      width: 40,
+                                  Text(
+                                    '${pokemon.height} m',
+                                    style: const TextStyle(
+                                      fontFamily: 'DiaryOfAn8BitMage',
+                                      fontSize: 16,
                                     ),
-                                    title: Text(
-                                      evolution['name'],
-                                      style: const TextStyle(
-                                        fontFamily: 'DiaryOfAn8BitMage',
-                                        fontSize: 16,
-                                      ),
-                                    ),
-                                    subtitle: Text(
-                                      (evolution['types'] as List).join(', '),
-                                      style: const TextStyle(
-                                        fontFamily: 'DiaryOfAn8BitMage',
-                                        fontSize: 14,
-                                      ),
-                                    ),
-                                    onTap: () {
-                                      Navigator.push(
-                                        context,
-                                        MaterialPageRoute(
-                                          builder: (context) =>
-                                              PokemonDetailPage(
-                                                  pokemonId: evolution['id']),
-                                        ),
-                                      );
-                                    },
-                                  );
-                                }).toList(),
-                            ],
+                                  ),
+                                ],
+                              ),
+                            ),
                           ),
+                        ),
+                        const SizedBox(width: 16),
+                        Expanded(
+                          child: Card(
+                            shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(12)),
+                            color: Colors.green.shade50,
+                            child: Padding(
+                              padding: const EdgeInsets.all(16.0),
+                              child: Column(
+                                children: [
+                                  const Text(
+                                    'Peso',
+                                    style: TextStyle(
+                                      fontFamily: 'DiaryOfAn8BitMage',
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                  Text(
+                                    '${pokemon.weight} kg',
+                                    style: const TextStyle(
+                                      fontFamily: 'DiaryOfAn8BitMage',
+                                      fontSize: 16,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  AnimatedOpacity(
+                    opacity: _opacity,
+                    duration: const Duration(milliseconds: 1500),
+                    child: Card(
+                      shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12)),
+                      color: Colors.orange.shade50,
+                      child: Padding(
+                        padding: const EdgeInsets.all(16.0),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            const Text(
+                              'Habilidades',
+                              style: TextStyle(
+                                fontFamily: 'DiaryOfAn8BitMage',
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                            Text(
+                              pokemon.abilities,
+                              style: const TextStyle(
+                                fontFamily: 'DiaryOfAn8BitMage',
+                                fontSize: 16,
+                              ),
+                            ),
+                          ],
                         ),
                       ),
                     ),
-                  ],
-                ),
+                  ),
+                  const SizedBox(height: 16),
+                  AnimatedOpacity(
+                    opacity: _opacity,
+                    duration: const Duration(milliseconds: 1500),
+                    child: Card(
+                      shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12)),
+                      color: Colors.purple.shade50,
+                      child: Padding(
+                        padding: const EdgeInsets.all(16.0),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            const Text(
+                              'Estadísticas',
+                              style: TextStyle(
+                                fontFamily: 'DiaryOfAn8BitMage',
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                            Text(
+                              pokemon.stats,
+                              style: const TextStyle(
+                                fontFamily: 'DiaryOfAn8BitMage',
+                                fontSize: 16,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  AnimatedOpacity(
+                    opacity: _opacity,
+                    duration: const Duration(milliseconds: 1500),
+                    child: Card(
+                      shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12)),
+                      color: Colors.yellow.shade50,
+                      child: Padding(
+                        padding: const EdgeInsets.all(16.0),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            const Text(
+                              'Movimientos (10 primeros)',
+                              style: TextStyle(
+                                fontFamily: 'DiaryOfAn8BitMage',
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                            Text(
+                              pokemon.moves,
+                              style: const TextStyle(
+                                fontFamily: 'DiaryOfAn8BitMage',
+                                fontSize: 16,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  AnimatedOpacity(
+                    opacity: _opacity,
+                    duration: const Duration(milliseconds: 1500),
+                    child: Card(
+                      shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12)),
+                      color: Colors.teal.shade50,
+                      child: Padding(
+                        padding: const EdgeInsets.all(16.0),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            const Text(
+                              'Evoluciones',
+                              style: TextStyle(
+                                fontFamily: 'DiaryOfAn8BitMage',
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                            if (evolutions.isEmpty)
+                              const Text(
+                                'No evolutions available',
+                                style: TextStyle(
+                                  fontFamily: 'DiaryOfAn8BitMage',
+                                  fontSize: 16,
+                                ),
+                              )
+                            else
+                              ...evolutions.map((evolution) {
+                                return ListTile(
+                                  leading: Image.network(
+                                    'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/${evolution['id']}.png',
+                                    height: 40,
+                                    width: 40,
+                                  ),
+                                  title: Text(
+                                    evolution['name'],
+                                    style: const TextStyle(
+                                      fontFamily: 'DiaryOfAn8BitMage',
+                                      fontSize: 16,
+                                    ),
+                                  ),
+                                  subtitle: Text(
+                                    (evolution['types'] as List).join(', '),
+                                    style: const TextStyle(
+                                      fontFamily: 'DiaryOfAn8BitMage',
+                                      fontSize: 14,
+                                    ),
+                                  ),
+                                  onTap: () {
+                                    Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                        builder: (context) => PokemonDetailPage(
+                                            pokemonId: evolution['id']),
+                                      ),
+                                    );
+                                  },
+                                );
+                              }).toList(),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
               ),
             ),
           );
