@@ -31,6 +31,8 @@ class _PokemonListPageState extends State<PokemonListPage>
   List<Pokemon> filteredPokemons = [];
   List<String> selectedTypes = [];
   List<String> selectedGenerations = [];
+  late List<AnimationController> _controllers;
+  late List<Animation<Offset>> _animations;
 
   final List<String> types = [
     'fire',
@@ -92,6 +94,31 @@ class _PokemonListPageState extends State<PokemonListPage>
     searchController.addListener(_filterPokemons);
   }
 
+  void _initializeAnimations() {
+    _controllers = List.generate(
+      filteredPokemons.length,
+      (index) => AnimationController(
+        vsync: this,
+        duration: const Duration(milliseconds: 500),
+      ),
+    );
+    _animations = _controllers.map((controller) {
+      return Tween<Offset>(
+        begin: const Offset(1.0, 0.0),
+        end: Offset.zero,
+      ).animate(CurvedAnimation(parent: controller, curve: Curves.easeOut));
+    }).toList();
+  }
+
+  @override
+  void dispose() {
+    for (var controller in _controllers) {
+      controller.dispose();
+    }
+    searchController.dispose();
+    super.dispose();
+  }
+
   void _filterPokemons() {
     final query = searchController.text.toLowerCase();
     setState(() {
@@ -103,6 +130,7 @@ class _PokemonListPageState extends State<PokemonListPage>
         final matchesSearch = pokemon.name.toLowerCase().contains(query);
         return matchesType && matchesGeneration && matchesSearch;
       }).toList();
+      _initializeAnimations();
     });
   }
 
@@ -235,6 +263,9 @@ class _PokemonListPageState extends State<PokemonListPage>
                       Expanded(
                         child: ElevatedButton(
                           onPressed: () => _showFilterOptions(context, 'type'),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.teal.shade700,
+                          ),
                           child: Text(
                               'Filtrar por Tipo (${selectedTypes.length})'),
                         ),
@@ -244,6 +275,9 @@ class _PokemonListPageState extends State<PokemonListPage>
                         child: ElevatedButton(
                           onPressed: () =>
                               _showFilterOptions(context, 'generation'),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.teal.shade700,
+                          ),
                           child: Text(
                               'Filtrar por Generación (${selectedGenerations.length})'),
                         ),
@@ -254,148 +288,161 @@ class _PokemonListPageState extends State<PokemonListPage>
               ),
             ),
             Expanded(
-              child: Query(
-                options: QueryOptions(
-                  document: gql(query),
-                  variables: variables,
-                ),
-                builder: (QueryResult result, {fetchMore, refetch}) {
-                  if (result.hasException) {
-                    print('GraphQL Exception: ${result.exception.toString()}');
-                    return Center(child: Text(result.exception.toString()));
-                  }
+              child: Padding(
+                padding: const EdgeInsets.only(bottom: 45.0),
+                child: Query(
+                  options: QueryOptions(
+                    document: gql(query),
+                    variables: variables,
+                  ),
+                  builder: (QueryResult result, {fetchMore, refetch}) {
+                    if (result.hasException) {
+                      print(
+                          'GraphQL Exception: ${result.exception.toString()}');
+                      return Center(child: Text(result.exception.toString()));
+                    }
 
-                  if (result.isLoading) {
-                    return const Center(child: CircularProgressIndicator());
-                  }
+                    if (result.isLoading) {
+                      return const Center(child: CircularProgressIndicator());
+                    }
 
-                  final pokemonsData =
-                      result.data?['pokemon_v2_pokemon'] as List<dynamic>? ??
-                          [];
-                  print('Pokemons Data: $pokemonsData');
-                  allPokemons = pokemonsData.map((pokemonData) {
-                    return Pokemon(
-                      id: pokemonData['id'],
-                      name: pokemonData['name'],
-                      types: (pokemonData['pokemon_v2_pokemontypes'] as List)
-                          .map((type) =>
-                              type['pokemon_v2_type']['name'] as String)
-                          .toList(),
-                      generation: pokemonData['pokemon_v2_pokemonspecy']
-                          ['pokemon_v2_generation']['name'],
-                    );
-                  }).toList();
+                    final pokemonsData =
+                        result.data?['pokemon_v2_pokemon'] as List<dynamic>? ??
+                            [];
+                    print('Pokemons Data: $pokemonsData');
+                    allPokemons = pokemonsData.map((pokemonData) {
+                      return Pokemon(
+                        id: pokemonData['id'],
+                        name: pokemonData['name'],
+                        types: (pokemonData['pokemon_v2_pokemontypes'] as List)
+                            .map((type) =>
+                                type['pokemon_v2_type']['name'] as String)
+                            .toList(),
+                        generation: pokemonData['pokemon_v2_pokemonspecy']
+                            ['pokemon_v2_generation']['name'],
+                      );
+                    }).toList();
 
-                  if (filteredPokemons.isEmpty) {
-                    filteredPokemons = List.from(allPokemons);
-                  }
+                    if (filteredPokemons.isEmpty) {
+                      filteredPokemons = List.from(allPokemons);
+                      _initializeAnimations();
+                    }
 
-                  if (filteredPokemons.isEmpty) {
-                    return const Center(
-                        child: Text('No se encontraron Pokémon.'));
-                  }
+                    if (filteredPokemons.isEmpty) {
+                      return const Center(
+                          child: Text('No se encontraron Pokémon.'));
+                    }
 
-                  return ListView.builder(
-                    itemCount: filteredPokemons.length,
-                    itemBuilder: (context, index) {
-                      final pokemon = filteredPokemons[index];
-                      final primaryType = pokemon.types.isNotEmpty
-                          ? pokemon.types[0]
-                          : 'normal';
-                      final color = typeColors[primaryType] ?? Colors.grey;
-                      final imageUrl =
-                          'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/${pokemon.id}.png';
+                    return ListView.builder(
+                      itemCount: filteredPokemons.length,
+                      itemBuilder: (context, index) {
+                        final pokemon = filteredPokemons[index];
+                        final primaryType = pokemon.types.isNotEmpty
+                            ? pokemon.types[0]
+                            : 'normal';
+                        final color = typeColors[primaryType] ?? Colors.grey;
+                        final imageUrl =
+                            'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/${pokemon.id}.png';
 
-                      return InkWell(
-                        onTap: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) =>
-                                  PokemonDetailPage(pokemonId: pokemon.id),
-                            ),
-                          );
-                        },
-                        child: Padding(
-                          padding: const EdgeInsets.all(8.0),
-                          child: Container(
-                            padding: const EdgeInsets.symmetric(
-                                vertical: 12.0, horizontal: 16.0),
-                            decoration: BoxDecoration(
-                              color: color.withOpacity(0.3),
-                              borderRadius: BorderRadius.circular(16),
-                              boxShadow: [
-                                BoxShadow(
-                                  color: Colors.grey.withOpacity(0.4),
-                                  blurRadius: 8,
-                                  spreadRadius: 2,
-                                  offset: const Offset(0, 2),
+                        _controllers[index].forward();
+
+                        return SlideTransition(
+                          position: _animations[index],
+                          child: InkWell(
+                            onTap: () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) =>
+                                      PokemonDetailPage(pokemonId: pokemon.id),
                                 ),
-                              ],
-                              image: DecorationImage(
-                                image: AssetImage('assets/icons/pokeball.png'),
-                                fit: BoxFit.cover,
-                                colorFilter: ColorFilter.mode(
-                                  Colors.white.withOpacity(0.2),
-                                  BlendMode.dstATop,
+                              );
+                            },
+                            child: Padding(
+                              padding: const EdgeInsets.all(8.0),
+                              child: Container(
+                                padding: const EdgeInsets.symmetric(
+                                    vertical: 12.0, horizontal: 16.0),
+                                decoration: BoxDecoration(
+                                  color: color.withOpacity(0.3),
+                                  borderRadius: BorderRadius.circular(16),
+                                  boxShadow: [
+                                    BoxShadow(
+                                      color: Colors.grey.withOpacity(0.4),
+                                      blurRadius: 8,
+                                      spreadRadius: 2,
+                                      offset: const Offset(0, 2),
+                                    ),
+                                  ],
+                                  image: DecorationImage(
+                                    image:
+                                        AssetImage('assets/icons/pokeball.png'),
+                                    fit: BoxFit.cover,
+                                    colorFilter: ColorFilter.mode(
+                                      Colors.white.withOpacity(0.2),
+                                      BlendMode.dstATop,
+                                    ),
+                                  ),
+                                ),
+                                child: Row(
+                                  children: [
+                                    Image.network(
+                                      imageUrl,
+                                      width: 80,
+                                      height: 80,
+                                      fit: BoxFit.contain,
+                                    ),
+                                    const SizedBox(width: 16),
+                                    Expanded(
+                                      child: Column(
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
+                                        children: [
+                                          Text(
+                                            '#${pokemon.id} ${pokemon.name}',
+                                            style: const TextStyle(
+                                              fontFamily: 'DiaryOfAn8BitMage',
+                                              fontSize: 22,
+                                              fontWeight: FontWeight.bold,
+                                              color: Colors.white,
+                                            ),
+                                          ),
+                                          const SizedBox(height: 8),
+                                          Row(
+                                            children: pokemon.types.map((type) {
+                                              return Padding(
+                                                padding: const EdgeInsets.only(
+                                                    right: 8.0),
+                                                child: Image.asset(
+                                                  'assets/icons/${type}.png',
+                                                  width: 32,
+                                                  height: 32,
+                                                ),
+                                              );
+                                            }).toList(),
+                                          ),
+                                          const SizedBox(height: 4),
+                                          Text(
+                                            pokemon.generation,
+                                            style: const TextStyle(
+                                              color: Colors.white,
+                                              fontFamily: 'DiaryOfAn8BitMage',
+                                              fontSize: 16,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  ],
                                 ),
                               ),
                             ),
-                            child: Row(
-                              children: [
-                                Image.network(
-                                  imageUrl,
-                                  width: 80,
-                                  height: 80,
-                                  fit: BoxFit.contain,
-                                ),
-                                const SizedBox(width: 16),
-                                Expanded(
-                                  child: Column(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    children: [
-                                      Text(
-                                        '#${pokemon.id} ${pokemon.name}',
-                                        style: const TextStyle(
-                                          fontFamily: 'DiaryOfAn8BitMage',
-                                          fontSize: 18,
-                                          fontWeight: FontWeight.bold,
-                                        ),
-                                      ),
-                                      const SizedBox(height: 8),
-                                      Row(
-                                        children: pokemon.types.map((type) {
-                                          return Padding(
-                                            padding: const EdgeInsets.only(
-                                                right: 8.0),
-                                            child: Image.asset(
-                                              'assets/icons/${type}.png',
-                                              width: 24,
-                                              height: 24,
-                                            ),
-                                          );
-                                        }).toList(),
-                                      ),
-                                      const SizedBox(height: 4),
-                                      Text(
-                                        pokemon.generation,
-                                        style: const TextStyle(
-                                          color: Colors.grey,
-                                          fontFamily: 'DiaryOfAn8BitMage',
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                              ],
-                            ),
                           ),
-                        ),
-                      );
-                    },
-                  );
-                },
+                        );
+                      },
+                    );
+                  },
+                ),
               ),
             ),
           ],

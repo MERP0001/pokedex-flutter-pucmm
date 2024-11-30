@@ -92,10 +92,10 @@ flutter:
   # see https://flutter.dev/to/font-from-package
 
   assets:
-    - assets/fonts/DiaryOfAn8BitMage-lYDD.ttf
+    - assets/fonts/LEMONMILK-RegularItalic.otf
     - assets/icons/
 
   fonts:
     - family: DiaryOfAn8BitMage
       fonts:
-        - asset: assets/fonts/DiaryOfAn8BitMage-lYDD.ttf
+        - asset: assets/fonts/LEMONMILK-RegularItalic.otf
