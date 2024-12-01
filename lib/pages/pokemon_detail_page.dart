@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:graphql_flutter/graphql_flutter.dart';
 import 'package:audioplayers/audioplayers.dart';
 import 'package:shared_preferences/shared_preferences.dart'; // Importa shared_preferences
+import 'dart:math'; // Add this import at the top of your file
 
 import 'Pokemon.dart';
 import 'PokemonQueries.dart';
@@ -22,6 +23,8 @@ class _PokemonDetailPageState extends State<PokemonDetailPage>
   double _opacity = 0.0;
   final AudioPlayer _audioPlayer = AudioPlayer();
   bool isFavorite = false;
+  Color _backgroundColor =
+      Color.fromARGB(255, 7, 169, 244); // Variable para el color de fondo
 
   @override
   void initState() {
@@ -61,6 +64,12 @@ class _PokemonDetailPageState extends State<PokemonDetailPage>
     });
   }
 
+  void _changeBackgroundColor(Color color) {
+    setState(() {
+      _backgroundColor = color;
+    });
+  }
+
   @override
   void dispose() {
     _controller.dispose();
@@ -71,12 +80,13 @@ class _PokemonDetailPageState extends State<PokemonDetailPage>
   Future<void> _playCry(Pokemon pokemon) async {
     final url =
         'https://play.pokemonshowdown.com/audio/cries/${pokemon.name.toLowerCase()}.mp3';
-    await _audioPlayer.play(url as Source);
+    await _audioPlayer.play(UrlSource(url));
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: _backgroundColor, // Usa la variable de color de fondo
       appBar: AppBar(
         leading: Row(
           children: [
@@ -91,17 +101,17 @@ class _PokemonDetailPageState extends State<PokemonDetailPage>
           children: [
             Image.asset(
               'assets/icons/pokeball (2).png',
-              width: 24,
-              height: 24,
+              width: 16, // Ajusta el tamaño según sea necesario
+              height: 16,
             ),
-            const SizedBox(width: 8),
-            const Text(
+            const SizedBox(width: 2),
+            Text(
               'Detalles del Pokémon',
-              style: TextStyle(fontFamily: 'DiaryOfAn8BitMage'),
+              style: TextStyle(fontFamily: 'DiaryOfAn8BitMage', fontSize: 16),
             ),
           ],
         ),
-        backgroundColor: const Color.fromARGB(255, 7, 169, 244),
+        backgroundColor: const Color(0xFF044CDB),
         actions: [
           IconButton(
             icon: Icon(
@@ -172,8 +182,8 @@ class _PokemonDetailPageState extends State<PokemonDetailPage>
             generation: pokemonData['pokemon_v2_pokemonspecy']
                     ?['pokemon_v2_generation']?['name'] ??
                 'Desconocido',
-            height: pokemonData['height'] ?? 0.0,
-            weight: pokemonData['weight'] ?? 0.0,
+            height: (pokemonData['height'] ?? 0).toDouble(),
+            weight: (pokemonData['weight'] ?? 0).toDouble(),
             abilities: (pokemonData['pokemon_v2_pokemonabilities'] as List?)
                     ?.map((ability) =>
                         ability['pokemon_v2_ability']['name'] as String)
@@ -201,11 +211,19 @@ class _PokemonDetailPageState extends State<PokemonDetailPage>
                       child: Column(
                         children: [
                           GestureDetector(
-                            onTap: () => _playCry(pokemon),
-                            child: Image.network(
-                              'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/${pokemon.id}.png',
-                              height: 200,
-                              fit: BoxFit.cover,
+                            onTap: () async {
+                              if (pokemon.name.isNotEmpty) {
+                                await _playCry(pokemon);
+                              }
+                            },
+                            child: AnimatedContainer(
+                              duration: Duration(milliseconds: 500),
+                              transform: Matrix4.rotationZ(0.1),
+                              child: Image.network(
+                                'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/${pokemon.id}.png',
+                                height: 200,
+                                fit: BoxFit.cover,
+                              ),
                             ),
                           ),
                           const SizedBox(height: 16),
@@ -230,7 +248,7 @@ class _PokemonDetailPageState extends State<PokemonDetailPage>
                     child: Card(
                       shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(12)),
-                      color: Colors.blue.shade50,
+                      color: const Color(0xFF0491DC),
                       child: Padding(
                         padding: const EdgeInsets.all(16.0),
                         child: Column(
@@ -265,7 +283,7 @@ class _PokemonDetailPageState extends State<PokemonDetailPage>
                           child: Card(
                             shape: RoundedRectangleBorder(
                                 borderRadius: BorderRadius.circular(12)),
-                            color: Colors.green.shade50,
+                            color: const Color(0xFF04DB9A),
                             child: Padding(
                               padding: const EdgeInsets.all(16.0),
                               child: Column(
@@ -294,7 +312,7 @@ class _PokemonDetailPageState extends State<PokemonDetailPage>
                           child: Card(
                             shape: RoundedRectangleBorder(
                                 borderRadius: BorderRadius.circular(12)),
-                            color: Colors.green.shade50,
+                            color: const Color(0xFF04DB9A),
                             child: Padding(
                               padding: const EdgeInsets.all(16.0),
                               child: Column(
@@ -328,7 +346,7 @@ class _PokemonDetailPageState extends State<PokemonDetailPage>
                     child: Card(
                       shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(12)),
-                      color: Colors.orange.shade50,
+                      color: const Color(0xFF04DB9A),
                       child: Padding(
                         padding: const EdgeInsets.all(16.0),
                         child: Column(
@@ -360,7 +378,7 @@ class _PokemonDetailPageState extends State<PokemonDetailPage>
                     child: Card(
                       shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(12)),
-                      color: Colors.purple.shade50,
+                      color: const Color(0xFF04DB9A),
                       child: Padding(
                         padding: const EdgeInsets.all(16.0),
                         child: Column(
@@ -392,7 +410,7 @@ class _PokemonDetailPageState extends State<PokemonDetailPage>
                     child: Card(
                       shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(12)),
-                      color: Colors.yellow.shade50,
+                      color: const Color(0xFF04DB9A),
                       child: Padding(
                         padding: const EdgeInsets.all(16.0),
                         child: Column(
@@ -405,12 +423,65 @@ class _PokemonDetailPageState extends State<PokemonDetailPage>
                                 fontWeight: FontWeight.bold,
                               ),
                             ),
-                            Text(
-                              pokemon.moves.join(', '),
-                              style: const TextStyle(
-                                fontFamily: 'DiaryOfAn8BitMage',
-                                fontSize: 16,
-                              ),
+                            ListView.builder(
+                              shrinkWrap: true,
+                              physics: NeverScrollableScrollPhysics(),
+                              itemCount: min(pokemon.moves.length, 3),
+                              itemBuilder: (context, index) {
+                                return ListTile(
+                                  title: Text(
+                                    pokemon.moves[index],
+                                    style: const TextStyle(
+                                      fontFamily: 'DiaryOfAn8BitMage',
+                                      fontSize: 11,
+                                    ),
+                                  ),
+                                  leading: Container(
+                                    decoration: BoxDecoration(
+                                      color: const Color(0xFF04DB9A),
+                                      borderRadius: BorderRadius.circular(8),
+                                    ),
+                                    padding: const EdgeInsets.all(8),
+                                    child: Text(
+                                      '${index + 1}',
+                                      style: const TextStyle(
+                                        fontFamily: 'DiaryOfAn8BitMage',
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                    ),
+                                  ),
+                                );
+                              },
+                            ),
+                            ElevatedButton(
+                              onPressed: () {
+                                showDialog(
+                                  context: context,
+                                  builder: (BuildContext context) {
+                                    return AlertDialog(
+                                      title: const Text('Movimientos'),
+                                      content: SingleChildScrollView(
+                                        child: ListBody(
+                                          children: pokemon.moves.map((move) {
+                                            return ListTile(
+                                              title: Text(move),
+                                            );
+                                          }).toList(),
+                                        ),
+                                      ),
+                                      actions: <Widget>[
+                                        TextButton(
+                                          child: const Text('Cerrar'),
+                                          onPressed: () {
+                                            Navigator.of(context).pop();
+                                          },
+                                        ),
+                                      ],
+                                    );
+                                  },
+                                );
+                              },
+                              child: const Text('Mostrar más movimientos'),
                             ),
                           ],
                         ),
@@ -424,7 +495,7 @@ class _PokemonDetailPageState extends State<PokemonDetailPage>
                     child: Card(
                       shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(12)),
-                      color: Colors.teal.shade50,
+                      color: const Color(0xFF04DB9A),
                       child: Padding(
                         padding: const EdgeInsets.all(16.0),
                         child: Column(
