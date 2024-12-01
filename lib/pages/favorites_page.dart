@@ -2,10 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:graphql_flutter/graphql_flutter.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'pokemon_detail_page.dart';
-import 'PokemonQueries.dart';
 import 'Pokemon.dart'; // Asegúrate de importar el modelo Pokemon
 
 class FavoritesPage extends StatefulWidget {
+  const FavoritesPage({super.key});
+
   @override
   _FavoritesPageState createState() => _FavoritesPageState();
 }
@@ -36,13 +37,13 @@ class _FavoritesPageState extends State<FavoritesPage> {
     if (favoritePokemonIds.isEmpty) {
       return Scaffold(
         appBar: AppBar(
-          title: Text('Pokémon Favoritos'),
+          title: const Text('Pokémon Favoritos'),
         ),
-        body: Center(child: Text('No hay Pokémon favoritos.')),
+        body: const Center(child: Text('No hay Pokémon favoritos.')),
       );
     }
 
-    final String query = '''
+    const String query = '''
       query GetFavoritePokemons(\$ids: [Int!]) {
         pokemon_v2_pokemon(where: {id: {_in: \$ids}}) {
           id
@@ -63,7 +64,7 @@ class _FavoritesPageState extends State<FavoritesPage> {
 
     return Scaffold(
       appBar: AppBar(
-        title: Text('Pokémon Favoritos'),
+        title: const Text('Pokémon Favoritos'),
       ),
       body: Query(
         options: QueryOptions(
@@ -104,7 +105,7 @@ class _FavoritesPageState extends State<FavoritesPage> {
               final pokemon = favoritePokemons[index];
               final primaryType =
                   pokemon.types.isNotEmpty ? pokemon.types[0] : 'normal';
-              final color =
+              const color =
                   Colors.grey; // Puedes usar un mapa de colores similar
               final imageUrl =
                   'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/${pokemon.id}.png';

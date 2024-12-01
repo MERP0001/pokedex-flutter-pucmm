@@ -219,7 +219,7 @@ class _PokemonListPageState extends State<PokemonListPage>
         title: Row(
           children: [
             Image.asset(
-              'assets/icons/Pokeball (2).png',
+              'assets/icons/pokeball (2).png',
               width: 24, // Ajusta el tamaño según sea necesario
               height: 24,
             ),
@@ -233,12 +233,12 @@ class _PokemonListPageState extends State<PokemonListPage>
         backgroundColor: const Color.fromARGB(255, 7, 169, 244),
         actions: [
           IconButton(
-            icon: Icon(Icons.star),
+            icon: const Icon(Icons.star),
             onPressed: () {
               Navigator.push(
                 context,
                 MaterialPageRoute(
-                  builder: (context) => FavoritesPage(),
+                  builder: (context) => const FavoritesPage(),
                 ),
               );
             },
@@ -249,7 +249,7 @@ class _PokemonListPageState extends State<PokemonListPage>
         decoration: BoxDecoration(
           color: Colors.lightBlueAccent,
           image: DecorationImage(
-            image: AssetImage('assets/icons/pokeball.png'),
+            image: const AssetImage('assets/icons/pokeball.png'),
             fit: BoxFit.none,
             alignment: Alignment.center,
             colorFilter: ColorFilter.mode(
@@ -295,7 +295,7 @@ class _PokemonListPageState extends State<PokemonListPage>
                           ),
                           child: Text(
                             'Filtrar por Tipo (${selectedTypes.length})',
-                            style: TextStyle(
+                            style: const TextStyle(
                               fontSize: 16,
                               fontWeight: FontWeight.bold,
                               color: Colors.white,
@@ -314,7 +314,7 @@ class _PokemonListPageState extends State<PokemonListPage>
                           ),
                           child: Text(
                             'Filtrar por Generación (${selectedGenerations.length})',
-                            style: TextStyle(
+                            style: const TextStyle(
                               fontSize: 16,
                               fontWeight: FontWeight.bold,
                               color: Colors.white,
@@ -416,8 +416,8 @@ class _PokemonListPageState extends State<PokemonListPage>
                                     ),
                                   ],
                                   image: DecorationImage(
-                                    image:
-                                        AssetImage('assets/icons/pokeball.png'),
+                                    image: const AssetImage(
+                                        'assets/icons/pokeball.png'),
                                     fit: BoxFit.cover,
                                     colorFilter: ColorFilter.mode(
                                       Colors.white.withOpacity(0.2),
@@ -455,7 +455,7 @@ class _PokemonListPageState extends State<PokemonListPage>
                                                 padding: const EdgeInsets.only(
                                                     right: 8.0),
                                                 child: Image.asset(
-                                                  'assets/icons/${type}.png',
+                                                  'assets/icons/$type.png',
                                                   width: 32,
                                                   height: 32,
                                                 ),

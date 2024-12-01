@@ -71,7 +71,7 @@ class _PokemonDetailPageState extends State<PokemonDetailPage>
   Future<void> _playCry(Pokemon pokemon) async {
     final url =
         'https://play.pokemonshowdown.com/audio/cries/${pokemon.name.toLowerCase()}.mp3';
-    await _audioPlayer.play(url);
+    await _audioPlayer.play(url as Source);
   }
 
   @override
@@ -81,7 +81,7 @@ class _PokemonDetailPageState extends State<PokemonDetailPage>
         leading: Row(
           children: [
             IconButton(
-              icon: Icon(Icons.arrow_back),
+              icon: const Icon(Icons.arrow_back),
               onPressed: () => Navigator.pop(context),
             ),
           ],
@@ -101,7 +101,7 @@ class _PokemonDetailPageState extends State<PokemonDetailPage>
             ),
           ],
         ),
-        backgroundColor: Color.fromARGB(255, 7, 169, 244),
+        backgroundColor: const Color.fromARGB(255, 7, 169, 244),
         actions: [
           IconButton(
             icon: Icon(
@@ -477,7 +477,7 @@ class _PokemonDetailPageState extends State<PokemonDetailPage>
                                     );
                                   },
                                 );
-                              }).toList(),
+                              }),
                           ],
                         ),
                       ),
