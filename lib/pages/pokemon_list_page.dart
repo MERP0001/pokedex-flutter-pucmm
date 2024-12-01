@@ -161,23 +161,28 @@ class _PokemonListPageState extends State<PokemonListPage>
                   title: Text(
                       'Selecciona ${filterType == 'type' ? 'Tipos' : 'Generaciones'}'),
                 ),
-                ...options.map((option) {
-                  return CheckboxListTile(
-                    title: Text(option),
-                    value: selectedOptions.contains(option),
-                    onChanged: (bool? value) {
-                      setModalState(() {
-                        if (value == true) {
-                          selectedOptions.add(option);
-                        } else {
-                          selectedOptions.remove(option);
-                        }
-                        setState(
-                            () {}); // Trigger a rebuild to update the query
-                      });
-                    },
-                  );
-                }).toList(),
+                SizedBox(
+                  height: 300,
+                  child: ListView(
+                    children: options.map((option) {
+                      return CheckboxListTile(
+                        title: Text(option),
+                        value: selectedOptions.contains(option),
+                        onChanged: (bool? value) {
+                          setModalState(() {
+                            if (value == true) {
+                              selectedOptions.add(option);
+                            } else {
+                              selectedOptions.remove(option);
+                            }
+                            setState(
+                                () {}); // Trigger a rebuild to update the query
+                          });
+                        },
+                      );
+                    }).toList(),
+                  ),
+                ),
                 TextButton(
                   onPressed: () {
                     Navigator.pop(context);
@@ -211,11 +216,21 @@ class _PokemonListPageState extends State<PokemonListPage>
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text(
-          'Pokédex',
-          style: TextStyle(fontFamily: 'DiaryOfAn8BitMage'),
+        title: Row(
+          children: [
+            Image.asset(
+              'assets/icons/Pokeball (2).png',
+              width: 24, // Ajusta el tamaño según sea necesario
+              height: 24,
+            ),
+            const SizedBox(width: 8), // Espacio entre el icono y el texto
+            const Text(
+              'Pokédex',
+              style: TextStyle(fontFamily: 'DiaryOfAn8BitMage'),
+            ),
+          ],
         ),
-        backgroundColor: Theme.of(context).colorScheme.inversePrimary,
+        backgroundColor: const Color.fromARGB(255, 7, 169, 244),
         actions: [
           IconButton(
             icon: Icon(Icons.star),
@@ -276,10 +291,17 @@ class _PokemonListPageState extends State<PokemonListPage>
                         child: ElevatedButton(
                           onPressed: () => _showFilterOptions(context, 'type'),
                           style: ElevatedButton.styleFrom(
-                            backgroundColor: Colors.teal.shade700,
+                            backgroundColor: Colors.blue,
                           ),
                           child: Text(
-                              'Filtrar por Tipo (${selectedTypes.length})'),
+                            'Filtrar por Tipo (${selectedTypes.length})',
+                            style: TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.white,
+                              fontFamily: 'DiaryOfAn8BitMage',
+                            ),
+                          ),
                         ),
                       ),
                       const SizedBox(width: 8),
@@ -288,10 +310,17 @@ class _PokemonListPageState extends State<PokemonListPage>
                           onPressed: () =>
                               _showFilterOptions(context, 'generation'),
                           style: ElevatedButton.styleFrom(
-                            backgroundColor: Colors.teal.shade700,
+                            backgroundColor: Colors.blue,
                           ),
                           child: Text(
-                              'Filtrar por Generación (${selectedGenerations.length})'),
+                            'Filtrar por Generación (${selectedGenerations.length})',
+                            style: TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.white,
+                              fontFamily: 'DiaryOfAn8BitMage',
+                            ),
+                          ),
                         ),
                       ),
                     ],

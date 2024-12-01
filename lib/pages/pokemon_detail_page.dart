@@ -78,11 +78,30 @@ class _PokemonDetailPageState extends State<PokemonDetailPage>
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text(
-          'Detalles del Pokémon',
-          style: TextStyle(fontFamily: 'DiaryOfAn8BitMage'),
+        leading: Row(
+          children: [
+            IconButton(
+              icon: Icon(Icons.arrow_back),
+              onPressed: () => Navigator.pop(context),
+            ),
+          ],
         ),
-        backgroundColor: Theme.of(context).colorScheme.inversePrimary,
+        title: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Image.asset(
+              'assets/icons/pokeball (2).png',
+              width: 24,
+              height: 24,
+            ),
+            const SizedBox(width: 8),
+            const Text(
+              'Detalles del Pokémon',
+              style: TextStyle(fontFamily: 'DiaryOfAn8BitMage'),
+            ),
+          ],
+        ),
+        backgroundColor: Color.fromARGB(255, 7, 169, 244),
         actions: [
           IconButton(
             icon: Icon(
@@ -144,28 +163,30 @@ class _PokemonDetailPageState extends State<PokemonDetailPage>
             ..sort((a, b) => a['id'].compareTo(b['id']));
 
           final pokemon = Pokemon(
-            id: pokemonData['id'],
-            name: pokemonData['name'],
+            id: pokemonData['id'] ?? 0,
+            name: pokemonData['name'] ?? 'Desconocido',
             types: (pokemonData['pokemon_v2_pokemontypes'] as List?)
-                    ?.map((type) => type['pokemon_v2_type']['name'])
-                    .join(', ') ??
-                'No types available',
-            height: pokemonData['height'].toDouble(),
-            weight: pokemonData['weight'].toDouble(),
+                    ?.map((type) => type['pokemon_v2_type']['name'] as String)
+                    .toList() ??
+                ['Desconocido'],
+            generation: pokemonData['pokemon_v2_pokemonspecy']
+                    ?['pokemon_v2_generation']?['name'] ??
+                'Desconocido',
+            height: pokemonData['height'] ?? 0.0,
+            weight: pokemonData['weight'] ?? 0.0,
             abilities: (pokemonData['pokemon_v2_pokemonabilities'] as List?)
-                    ?.map((ability) => ability['pokemon_v2_ability']['name'])
-                    .join(', ') ??
-                'No abilities available',
+                    ?.map((ability) =>
+                        ability['pokemon_v2_ability']['name'] as String)
+                    .toList() ??
+                ['Desconocido'],
             stats: (pokemonData['pokemon_v2_pokemonstats'] as List?)
-                    ?.map((stat) =>
-                        '${stat['pokemon_v2_stat']['name']}: ${stat['base_stat']}')
-                    .join('\n') ??
-                'No stats available',
+                    ?.map((stat) => stat['pokemon_v2_stat']['name'] as String)
+                    .toList() ??
+                ['Desconocido'],
             moves: (pokemonData['pokemon_v2_pokemonmoves'] as List?)
-                    ?.map((move) => move['pokemon_v2_move']['name'])
-                    .take(10)
-                    .join(', ') ??
-                'No moves available',
+                    ?.map((move) => move['pokemon_v2_move']['name'] as String)
+                    .toList() ??
+                ['Desconocido'],
           );
 
           return Padding(
@@ -223,7 +244,7 @@ class _PokemonDetailPageState extends State<PokemonDetailPage>
                               ),
                             ),
                             Text(
-                              pokemon.types,
+                              pokemon.types.join(', '),
                               style: const TextStyle(
                                 fontFamily: 'DiaryOfAn8BitMage',
                                 fontSize: 16,
@@ -321,7 +342,7 @@ class _PokemonDetailPageState extends State<PokemonDetailPage>
                               ),
                             ),
                             Text(
-                              pokemon.abilities,
+                              pokemon.abilities.join(', '),
                               style: const TextStyle(
                                 fontFamily: 'DiaryOfAn8BitMage',
                                 fontSize: 16,
@@ -353,7 +374,7 @@ class _PokemonDetailPageState extends State<PokemonDetailPage>
                               ),
                             ),
                             Text(
-                              pokemon.stats,
+                              pokemon.stats.join(', '),
                               style: const TextStyle(
                                 fontFamily: 'DiaryOfAn8BitMage',
                                 fontSize: 16,
@@ -385,7 +406,7 @@ class _PokemonDetailPageState extends State<PokemonDetailPage>
                               ),
                             ),
                             Text(
-                              pokemon.moves,
+                              pokemon.moves.join(', '),
                               style: const TextStyle(
                                 fontFamily: 'DiaryOfAn8BitMage',
                                 fontSize: 16,

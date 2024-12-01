@@ -1,17 +1,19 @@
 class Pokemon {
   final int id;
   final String name;
-  final String types;
+  final List<String> types;
+  final String generation;
   final double height;
   final double weight;
-  final String abilities;
-  final String stats;
-  final String moves;
+  final List<String> abilities;
+  final List<String> stats;
+  final List<String> moves;
 
   Pokemon({
     required this.id,
     required this.name,
     required this.types,
+    required this.generation,
     required this.height,
     required this.weight,
     required this.abilities,
