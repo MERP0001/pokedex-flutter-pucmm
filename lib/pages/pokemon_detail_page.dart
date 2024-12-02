@@ -156,20 +156,36 @@ class _PokemonDetailPageState extends State<PokemonDetailPage>
     textPainter.layout(minWidth: 0, maxWidth: width);
     textPainter.paint(canvas, Offset(50, 300));
 
-    final typesText = pokemon!.types.join(', ');
-    final typesPainter = TextPainter(
-      text: TextSpan(
-        text: 'Tipo: $typesText',
-        style: const TextStyle(
-          color: Colors.white,
-          fontSize: 18,
-          fontFamily: 'DiaryOfAn8BitMage',
+    // Dibujar los tipos como chips
+    double chipOffsetY = 350;
+    for (var type in pokemon.types) {
+      final chipPainter = TextPainter(
+        text: TextSpan(
+          text: type,
+          style: const TextStyle(
+            color: Colors.white,
+            fontSize: 16,
+            fontFamily: 'DiaryOfAn8BitMage',
+          ),
         ),
-      ),
-      textDirection: TextDirection.ltr,
-    );
-    typesPainter.layout(minWidth: 0, maxWidth: width);
-    typesPainter.paint(canvas, Offset(50, 350));
+        textDirection: TextDirection.ltr,
+      );
+      chipPainter.layout();
+      final chipWidth = chipPainter.width + 16;
+      final chipHeight = chipPainter.height + 8;
+
+      final paint = Paint()..color = typeColors[type] ?? Colors.grey;
+      canvas.drawRRect(
+        RRect.fromRectAndRadius(
+          Rect.fromLTWH(50, chipOffsetY, chipWidth, chipHeight),
+          Radius.circular(8),
+        ),
+        paint,
+      );
+
+      chipPainter.paint(canvas, Offset(58, chipOffsetY + 4));
+      chipOffsetY += chipHeight + 8;
+    }
 
     final heightWeightText =
         'Altura: ${pokemon!.height} m, Peso: ${pokemon!.weight} kg';
@@ -185,7 +201,7 @@ class _PokemonDetailPageState extends State<PokemonDetailPage>
       textDirection: TextDirection.ltr,
     );
     heightWeightPainter.layout(minWidth: 0, maxWidth: width);
-    heightWeightPainter.paint(canvas, Offset(50, 400));
+    heightWeightPainter.paint(canvas, Offset(50, chipOffsetY + 16));
 
     final statsText = pokemon!.stats.join('\n');
     final statsPainter = TextPainter(
@@ -200,7 +216,7 @@ class _PokemonDetailPageState extends State<PokemonDetailPage>
       textDirection: TextDirection.ltr,
     );
     statsPainter.layout(minWidth: 0, maxWidth: width);
-    statsPainter.paint(canvas, Offset(50, 450));
+    statsPainter.paint(canvas, Offset(50, chipOffsetY + 56));
 
     final picture = recorder.endRecording();
     final img = await picture.toImage(width.toInt(), height.toInt());
@@ -418,39 +434,26 @@ class _PokemonDetailPageState extends State<PokemonDetailPage>
                                       color: Colors.white,
                                     ),
                               ),
+                              const SizedBox(height: 8),
+                              Wrap(
+                                alignment: WrapAlignment.center,
+                                spacing: 8.0,
+                                children: pokemon.types.map((type) {
+                                  return Chip(
+                                    label: Text(
+                                      type,
+                                      style: const TextStyle(
+                                        fontFamily: 'DiaryOfAn8BitMage',
+                                        fontSize: 16,
+                                        color: Colors.white,
+                                      ),
+                                    ),
+                                    backgroundColor:
+                                        typeColors[type] ?? Colors.grey,
+                                  );
+                                }).toList(),
+                              ),
                             ],
-                          ),
-                        ),
-                      ),
-                      const SizedBox(height: 16),
-                      AnimatedOpacity(
-                        opacity: _opacity,
-                        duration: const Duration(milliseconds: 1500),
-                        child: Card(
-                          shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(12)),
-                          color: containerColor,
-                          child: Padding(
-                            padding: const EdgeInsets.all(16.0),
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                const Text(
-                                  'Tipo',
-                                  style: TextStyle(
-                                    fontFamily: 'DiaryOfAn8BitMage',
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                                ),
-                                Text(
-                                  pokemon.types.join(', '),
-                                  style: const TextStyle(
-                                    fontFamily: 'DiaryOfAn8BitMage',
-                                    fontSize: 16,
-                                  ),
-                                ),
-                              ],
-                            ),
                           ),
                         ),
                       ),
