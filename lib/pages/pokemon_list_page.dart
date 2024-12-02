@@ -268,14 +268,27 @@ class _PokemonListPageState extends State<PokemonListPage>
 
   @override
   Widget build(BuildContext context) {
-    selectedOrder ??= null;
+    selectedOrder ??= 'Ninguno';
+    final List<String> stats = [
+      'hp',
+      'attack',
+      'defense',
+      'special-attack',
+      'special-defense',
+      'speed',
+    ];
 
     final bool useFilters = selectedTypes.isNotEmpty ||
         selectedGenerations.isNotEmpty ||
         selectedOrder != null;
 
-    final String query = PokemonQueries.getPokemons(
-        selectedTypes, selectedGenerations, selectedOrder);
+    final bool useStat = selectedOrder != null && stats.contains(selectedOrder);
+
+    final String query = useStat
+        ? PokemonQueries.getPokemonsOrderedByStatWithFilters(
+            selectedOrder!, selectedTypes, selectedGenerations)
+        : PokemonQueries.getPokemons(
+            selectedTypes, selectedGenerations, selectedOrder!);
 
     final Map<String, dynamic> variables = {};
     if (selectedTypes.isNotEmpty) {
@@ -283,6 +296,9 @@ class _PokemonListPageState extends State<PokemonListPage>
     }
     if (selectedGenerations.isNotEmpty) {
       variables['generations'] = selectedGenerations;
+    }
+    if (useStat) {
+      variables['stat'] = selectedOrder;
     }
 
     return Scaffold(
@@ -430,22 +446,50 @@ class _PokemonListPageState extends State<PokemonListPage>
                       return const Center(child: CircularProgressIndicator());
                     }
 
-                    final pokemonsData =
-                        result.data?['pokemon_v2_pokemon'] as List<dynamic>? ??
-                            [];
-                    print('Pokemons Data: $pokemonsData');
-                    allPokemons = pokemonsData.map((pokemonData) {
-                      return Pokemon(
-                        id: pokemonData['id'],
-                        name: pokemonData['name'],
-                        types: (pokemonData['pokemon_v2_pokemontypes'] as List)
-                            .map((type) =>
-                                type['pokemon_v2_type']['name'] as String)
-                            .toList(),
-                        generation: pokemonData['pokemon_v2_pokemonspecy']
-                            ['pokemon_v2_generation']['name'],
-                      );
-                    }).toList();
+                    final pokemonsData = result.data;
+
+                    if (pokemonsData?['pokemon_v2_pokemonstat'] != null) {
+                      // Caso para el query de stats
+                      final statData = pokemonsData?['pokemon_v2_pokemonstat']
+                              as List<dynamic>? ??
+                          [];
+                      print('Pokemons Data (Stats Query): $statData');
+                      allPokemons = statData.map((statEntry) {
+                        final pokemon = statEntry['pokemon_v2_pokemon'];
+                        return Pokemon(
+                          id: pokemon['id'],
+                          name: pokemon['name'],
+                          types: (pokemon['pokemon_v2_pokemontypes'] as List)
+                              .map((type) =>
+                                  type['pokemon_v2_type']['name'] as String)
+                              .toList(),
+                          generation: pokemon['pokemon_v2_pokemonspecy']
+                              ['pokemon_v2_generation']['name'],
+                        );
+                      }).toList();
+                    } else if (pokemonsData?['pokemon_v2_pokemon'] != null) {
+                      // Caso para el query sin stats
+                      final pokemonList = pokemonsData?['pokemon_v2_pokemon']
+                              as List<dynamic>? ??
+                          [];
+                      print('Pokemons Data (Standard Query): $pokemonList');
+                      allPokemons = pokemonList.map((pokemonData) {
+                        return Pokemon(
+                          id: pokemonData['id'],
+                          name: pokemonData['name'],
+                          types:
+                              (pokemonData['pokemon_v2_pokemontypes'] as List)
+                                  .map((type) =>
+                                      type['pokemon_v2_type']['name'] as String)
+                                  .toList(),
+                          generation: pokemonData['pokemon_v2_pokemonspecy']
+                              ['pokemon_v2_generation']['name'],
+                        );
+                      }).toList();
+                    } else {
+                      print('No Pokémon data found.');
+                      allPokemons = [];
+                    }
 
                     if (filteredPokemons.isEmpty) {
                       filteredPokemons = List.from(allPokemons);

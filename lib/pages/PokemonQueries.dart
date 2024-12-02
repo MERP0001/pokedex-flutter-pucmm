@@ -30,25 +30,7 @@ class PokemonQueries {
     // Lógica para el ordenamiento
     String orderBy = '';
 
-    if (isOrderByFieldValid && stats.contains(orderByField)) {
-      // Ordenar por un stat específico
-      orderBy = '''
-      order_by: {
-        pokemon_v2_pokemonstats_aggregate: {
-          sum: {
-            base_stat: desc
-          }
-        }
-      },
-      where: {
-        pokemon_v2_pokemonstats: {
-          pokemon_v2_stat: {
-            name: { _eq: "$orderByField" }
-          }
-        }
-      }
-    ''';
-    } else if (isOrderByFieldValid && orderByField == 'total') {
+    if (isOrderByFieldValid && orderByField == 'total') {
       // Ordenar por el total de stats
       orderBy = '''
       order_by: {
@@ -93,6 +75,51 @@ class PokemonQueries {
 
     print('Generated Query: $query');
     return query;
+  }
+
+  static String getPokemonsOrderedByStatWithFilters(
+      String stat, List<String>? types, List<String>? generations) {
+    // Generar filtros condicionales para tipos y generaciones
+    final typeFilter = types != null && types.isNotEmpty
+        ? 'pokemon_v2_pokemon: { pokemon_v2_pokemontypes: { pokemon_v2_type: { name: { _in: \$types } } } }'
+        : '';
+
+    final generationFilter = generations != null && generations.isNotEmpty
+        ? 'pokemon_v2_pokemon: { pokemon_v2_pokemonspecy: { pokemon_v2_generation: { name: { _in: \$generations } } } }'
+        : '';
+
+    // Combinar filtros
+    final combinedFilters = [typeFilter, generationFilter]
+        .where((filter) => filter.isNotEmpty)
+        .join(', ');
+
+    return '''
+    query GetPokemonsOrderedByStatWithFilters(\$stat: String!, \$types: [String!], \$generations: [String!]) {
+      pokemon_v2_pokemonstat(
+        where: {
+          pokemon_v2_stat: { name: { _eq: \$stat } }
+          ${combinedFilters.isNotEmpty ? '$combinedFilters' : ''}
+        },
+        order_by: { base_stat: desc }
+      ) {
+        base_stat
+        pokemon_v2_pokemon {
+          id
+          name
+          pokemon_v2_pokemontypes {
+            pokemon_v2_type {
+              name
+            }
+          }
+          pokemon_v2_pokemonspecy {
+            pokemon_v2_generation {
+              name
+            }
+          }
+        }
+      }
+    }
+  ''';
   }
 
   static String getAllPokemons() {
