@@ -251,7 +251,8 @@ class _PokemonDetailPageState extends State<PokemonDetailPage>
           );
 
           // Obtén el color del primer tipo de Pokémon
-          final primaryType = pokemon.types.isNotEmpty ? pokemon.types.first : 'normal';
+          final primaryType =
+              pokemon.types.isNotEmpty ? pokemon.types.first : 'normal';
           final containerColor = typeColors[primaryType] ?? Colors.grey;
 
           return Container(
@@ -277,10 +278,12 @@ class _PokemonDetailPageState extends State<PokemonDetailPage>
                       height: 16,
                     ),
                     const SizedBox(width: 2),
-                    Text(
-                      'Detalles del Pokémon',
-                      style: TextStyle(
-                          fontFamily: 'DiaryOfAn8BitMage', fontSize: 16),
+                    const Flexible(
+                      child: Text(
+                        'Detalles del Pokémon',
+                        style: TextStyle(
+                            fontFamily: 'DiaryOfAn8BitMage', fontSize: 16),
+                      ),
                     ),
                   ],
                 ),
@@ -383,8 +386,7 @@ class _PokemonDetailPageState extends State<PokemonDetailPage>
                             Expanded(
                               child: Card(
                                 shape: RoundedRectangleBorder(
-                                    borderRadius:
-                                        BorderRadius.circular(12)),
+                                    borderRadius: BorderRadius.circular(12)),
                                 color: const Color(0xFF779242),
                                 child: Padding(
                                   padding: const EdgeInsets.all(16.0),
@@ -413,8 +415,7 @@ class _PokemonDetailPageState extends State<PokemonDetailPage>
                             Expanded(
                               child: Card(
                                 shape: RoundedRectangleBorder(
-                                    borderRadius:
-                                        BorderRadius.circular(12)),
+                                    borderRadius: BorderRadius.circular(12)),
                                 color: const Color(0xFF779242),
                                 child: Padding(
                                   padding: const EdgeInsets.all(16.0),
@@ -606,8 +607,7 @@ class _PokemonDetailPageState extends State<PokemonDetailPage>
                                       },
                                     );
                                   },
-                                  child:
-                                      const Text('Mostrar más movimientos'),
+                                  child: const Text('Mostrar más movimientos'),
                                 ),
                               ],
                             ),
@@ -658,8 +658,7 @@ class _PokemonDetailPageState extends State<PokemonDetailPage>
                                         ),
                                       ),
                                       subtitle: Text(
-                                        (evolution['types'] as List)
-                                            .join(', '),
+                                        (evolution['types'] as List).join(', '),
                                         style: const TextStyle(
                                           fontFamily: 'DiaryOfAn8BitMage',
                                           fontSize: 14,
@@ -671,8 +670,7 @@ class _PokemonDetailPageState extends State<PokemonDetailPage>
                                           MaterialPageRoute(
                                             builder: (context) =>
                                                 PokemonDetailPage(
-                                                    pokemonId:
-                                                        evolution['id']),
+                                                    pokemonId: evolution['id']),
                                           ),
                                         );
                                       },

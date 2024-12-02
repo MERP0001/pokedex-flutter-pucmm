@@ -216,7 +216,7 @@ class _PokemonListPageState extends State<PokemonListPage>
       },
     );
   }
-  
+
   void _showOrderOptions(BuildContext context) {
     showModalBottomSheet(
       context: context,
@@ -228,8 +228,8 @@ class _PokemonListPageState extends State<PokemonListPage>
             return Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                ListTile(
-                  title: const Text('Selecciona un orden'),
+                const ListTile(
+                  title: Text('Selecciona un orden'),
                 ),
                 SizedBox(
                   height: 300,
@@ -242,8 +242,11 @@ class _PokemonListPageState extends State<PokemonListPage>
                         onChanged: (String? value) {
                           setModalState(() {
                             selectedOrder = value == 'Ninguno' ? null : value;
-                            _filterPokemons(); // Update the list based on the selected order
                           });
+                          setState(() {
+                            _filterPokemons();
+                          });
+                          Navigator.pop(context);
                         },
                       );
                     }).toList(),
