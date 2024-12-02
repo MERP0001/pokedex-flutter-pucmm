@@ -28,6 +28,7 @@ class PokemonListPage extends StatefulWidget {
 class _PokemonListPageState extends State<PokemonListPage>
     with TickerProviderStateMixin {
   final TextEditingController searchController = TextEditingController();
+  final ScrollController _scrollController = ScrollController();
   List<Pokemon> allPokemons = [];
   List<Pokemon> filteredPokemons = [];
   List<String> selectedTypes = [];
@@ -106,6 +107,9 @@ class _PokemonListPageState extends State<PokemonListPage>
   void initState() {
     super.initState();
     searchController.addListener(_filterPokemons);
+    _scrollController.addListener(() {
+      // Add any specific scroll behavior if needed
+    });
   }
 
   void _initializeAnimations() {
@@ -130,6 +134,7 @@ class _PokemonListPageState extends State<PokemonListPage>
       controller.dispose();
     }
     searchController.dispose();
+    _scrollController.dispose();
     super.dispose();
   }
 
@@ -155,6 +160,11 @@ class _PokemonListPageState extends State<PokemonListPage>
       selectedGenerations.clear();
       selectedOrder = 'Ninguno';
       final query = PokemonQueries.getAllPokemonsOrderedById();
+      _scrollController.animateTo(
+        0.0,
+        duration: const Duration(milliseconds: 500),
+        curve: Curves.easeOut,
+      );
     });
   }
 
@@ -357,9 +367,16 @@ class _PokemonListPageState extends State<PokemonListPage>
                       Expanded(
                         child: TextField(
                           controller: searchController,
-                          decoration: const InputDecoration(
+                          decoration: InputDecoration(
                             labelText: 'Buscar Pokémon',
                             prefixIcon: Icon(Icons.search),
+                            filled: true,
+                            fillColor: Colors.white,
+                            border: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(30.0),
+                              borderSide: BorderSide.none,
+                            ),
+                            contentPadding: EdgeInsets.symmetric(vertical: 10.0, horizontal: 20.0),
                           ),
                           onChanged: (value) {
                             _filterPokemons();
