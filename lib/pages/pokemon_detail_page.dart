@@ -186,18 +186,20 @@ class _PokemonDetailPageState extends State<PokemonDetailPage>
                 onPressed: () => Navigator.pop(context),
               ),
               title: Row(
-                mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   Image.asset(
                     'assets/icons/pokeball (2).png',
                     width: 16,
                     height: 16,
                   ),
-                  const SizedBox(width: 2),
-                  Text(
-                    'Detalles del Pokémon',
-                    style: TextStyle(
-                        fontFamily: 'DiaryOfAn8BitMage', fontSize: 16),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      'Detalles del Pokémon',
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                          fontFamily: 'DiaryOfAn8BitMage', fontSize: 16),
+                    ),
                   ),
                 ],
               ),

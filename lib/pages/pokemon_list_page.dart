@@ -51,7 +51,7 @@ class _PokemonListPageState extends State<PokemonListPage>
     'ghost',
     'steel',
     'psychic',
-    'ice',
+    'Ice',
     'dragon',
     'dark',
     'fairy'
@@ -216,7 +216,7 @@ class _PokemonListPageState extends State<PokemonListPage>
       },
     );
   }
-
+  
   void _showOrderOptions(BuildContext context) {
     showModalBottomSheet(
       context: context,
@@ -242,11 +242,8 @@ class _PokemonListPageState extends State<PokemonListPage>
                         onChanged: (String? value) {
                           setModalState(() {
                             selectedOrder = value == 'Ninguno' ? null : value;
-                          });
-                          setState(() {
                             _filterPokemons(); // Update the list based on the selected order
                           });
-                          Navigator.pop(context); // Close the modal
                         },
                       );
                     }).toList(),
