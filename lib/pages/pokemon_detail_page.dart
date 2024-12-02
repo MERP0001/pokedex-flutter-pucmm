@@ -621,7 +621,7 @@ class _PokemonDetailPageState extends State<PokemonDetailPage>
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 const Text(
-                                  'Movimientos (10 primeros)',
+                                  'Movimientos',
                                   style: TextStyle(
                                     fontFamily: 'DiaryOfAn8BitMage',
                                     fontWeight: FontWeight.bold,
