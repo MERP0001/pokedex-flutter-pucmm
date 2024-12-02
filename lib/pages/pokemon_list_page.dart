@@ -32,6 +32,7 @@ class _PokemonListPageState extends State<PokemonListPage>
   List<Pokemon> filteredPokemons = [];
   List<String> selectedTypes = [];
   List<String> selectedGenerations = [];
+  String? selectedOrder;
   late List<AnimationController> _controllers;
   late List<Animation<Offset>> _animations;
 
@@ -66,6 +67,17 @@ class _PokemonListPageState extends State<PokemonListPage>
     'generation-vii',
     'generation-viii',
     'generation-ix'
+  ];
+
+  final List<String> orderByFields = [
+    'name',
+    'hp',
+    'attack',
+    'defense',
+    'special-attack',
+    'special-defense',
+    'speed',
+    'total'
   ];
 
   final Map<String, Color> typeColors = {
@@ -199,11 +211,13 @@ class _PokemonListPageState extends State<PokemonListPage>
 
   @override
   Widget build(BuildContext context) {
-    final bool useFilters =
-        selectedTypes.isNotEmpty || selectedGenerations.isNotEmpty;
+    final bool useFilters = selectedTypes.isNotEmpty ||
+        selectedGenerations.isNotEmpty ||
+        selectedOrder != null;
 
     final String query = useFilters
-        ? PokemonQueries.getPokemons(selectedTypes, selectedGenerations)
+        ? PokemonQueries.getPokemons(
+            selectedTypes, selectedGenerations, selectedOrder)
         : PokemonQueries.getAllPokemons();
 
     final Map<String, dynamic> variables = {};

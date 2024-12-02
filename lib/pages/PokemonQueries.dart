@@ -1,7 +1,16 @@
 // lib/queries/pokemon_queries.dart
 
 class PokemonQueries {
-  static String getPokemons(List<String>? types, List<String>? generations) {
+  static final List<String> stats = [
+    'hp',
+    'attack',
+    'defense',
+    'special-attack',
+    'special-defense',
+    'speed',
+  ];
+  static String getPokemons(
+      List<String>? types, List<String>? generations, String? orderByField) {
     final typeFilter = types != null && types.isNotEmpty
         ? 'pokemon_v2_pokemontypes: { pokemon_v2_type: { name: { _in: \$types } } }'
         : '';
@@ -9,12 +18,51 @@ class PokemonQueries {
         ? 'pokemon_v2_pokemonspecy: { pokemon_v2_generation: { name: { _in: \$generations } } }'
         : '';
 
+    // Lógica para determinar el orden
+    String orderBy = '';
+
+    if (stats.contains(orderByField)) {
+      // Ordenar por un stat específico
+      orderBy = '''
+      order_by: {
+        pokemon_v2_pokemonstats_aggregate: {
+          sum: {
+            base_stat: desc
+          }
+        }
+      },
+      where: {
+        pokemon_v2_pokemonstats: {
+          pokemon_v2_stat: { name: { _eq: "$orderByField" } }
+        }
+      }
+    ''';
+    } else if (orderByField == 'total') {
+      // Ordenar por el total de stats
+      orderBy = '''
+      order_by: {
+        pokemon_v2_pokemonstats_aggregate: {
+          sum: {
+            base_stat: desc
+          }
+        }
+      }
+    ''';
+    } else if (orderByField == 'name') {
+      // Ordenar por nombre
+      orderBy = '''
+      order_by: {
+        name: asc
+      }
+    ''';
+    }
+
     final query = '''
       query GetPokemons(\$types: [String!], \$generations: [String!]) {
         pokemon_v2_pokemon(where: {
           $typeFilter
           $generationFilter
-        }) {
+        }, $orderBy) {
           id
           name
           pokemon_v2_pokemontypes {
