@@ -1,4 +1,7 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:graphql_flutter/graphql_flutter.dart';
 import 'package:audioplayers/audioplayers.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -97,17 +100,11 @@ class _PokemonDetailPageState extends State<PokemonDetailPage>
     });
   }
 
-  Future<void> _sharePokemonDetails(Pokemon pokemon) async {
-    try {
-      RenderRepaintBoundary boundary = _globalKey.currentContext!
-          .findRenderObject() as RenderRepaintBoundary;
-      ui.Image image = await boundary.toImage();
-      ByteData? byteData =
-          await image.toByteData(format: ui.ImageByteFormat.png);
-      Uint8List pngBytes = byteData!.buffer.asUint8List();
+  Future<void> _sharePokemonDetails(pokemon) async {
+    if (pokemon == null) return;
 
-      // Create a new image with a custom style
-      final styledImage = await _applyCustomStyleToImage(pngBytes);
+    try {
+      final styledImage = await _createCustomPokemonImage(pokemon);
 
       final directory = await getTemporaryDirectory();
       final imagePath = '${directory.path}/styled_pokemon_details.png';
@@ -116,37 +113,117 @@ class _PokemonDetailPageState extends State<PokemonDetailPage>
 
       await Share.shareXFiles(
         [XFile(imagePath)],
-        text: 'Detalles del Pokémon',
+        text: '¡Mira los detalles de ${pokemon.name.toUpperCase()}!',
       );
     } catch (e) {
       print(e.toString());
     }
   }
 
-  Future<Uint8List> _applyCustomStyleToImage(Uint8List imageBytes) async {
-    // Load the original image
-    final originalImage = await decodeImageFromList(imageBytes);
-
-    // Create a canvas to draw the styled image
+  Future<Uint8List> _createCustomPokemonImage(pokemon) async {
     final recorder = ui.PictureRecorder();
     final canvas = Canvas(recorder);
 
-    // Define the size of the new image
-    final size =
-        Size(originalImage.width.toDouble(), originalImage.height.toDouble());
+    const double width = 400;
+    const double height = 700;
 
-    // Draw a background or frame
-    final paint = Paint()..color = Colors.white; // Change color as needed
-    canvas.drawRect(Rect.fromLTWH(0, 0, size.width, size.height), paint);
+    final backgroundImage =
+        await _loadAssetImage('assets/backgrounds/${pokemon!.types.first}.jpg');
+    canvas.drawImageRect(
+      backgroundImage,
+      Rect.fromLTWH(0, 0, backgroundImage.width.toDouble(),
+          backgroundImage.height.toDouble()),
+      Rect.fromLTWH(0, 0, width, height),
+      Paint(),
+    );
 
-    // Draw the original image on top
-    canvas.drawImage(originalImage, Offset.zero, Paint());
+    final image = await _loadNetworkImage(
+        'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/${pokemon!.id}.png');
+    canvas.drawImage(image, Offset(50, 50), Paint());
 
-    // Finalize the image
+    final textPainter = TextPainter(
+      text: TextSpan(
+        text: pokemon!.name.toUpperCase(),
+        style: const TextStyle(
+          color: Colors.white,
+          fontSize: 24,
+          fontWeight: FontWeight.bold,
+          fontFamily: 'DiaryOfAn8BitMage',
+        ),
+      ),
+      textDirection: TextDirection.ltr,
+    );
+    textPainter.layout(minWidth: 0, maxWidth: width);
+    textPainter.paint(canvas, Offset(50, 300));
+
+    final typesText = pokemon!.types.join(', ');
+    final typesPainter = TextPainter(
+      text: TextSpan(
+        text: 'Tipo: $typesText',
+        style: const TextStyle(
+          color: Colors.white,
+          fontSize: 18,
+          fontFamily: 'DiaryOfAn8BitMage',
+        ),
+      ),
+      textDirection: TextDirection.ltr,
+    );
+    typesPainter.layout(minWidth: 0, maxWidth: width);
+    typesPainter.paint(canvas, Offset(50, 350));
+
+    final heightWeightText =
+        'Altura: ${pokemon!.height} m, Peso: ${pokemon!.weight} kg';
+    final heightWeightPainter = TextPainter(
+      text: TextSpan(
+        text: heightWeightText,
+        style: const TextStyle(
+          color: Colors.white,
+          fontSize: 18,
+          fontFamily: 'DiaryOfAn8BitMage',
+        ),
+      ),
+      textDirection: TextDirection.ltr,
+    );
+    heightWeightPainter.layout(minWidth: 0, maxWidth: width);
+    heightWeightPainter.paint(canvas, Offset(50, 400));
+
+    final statsText = pokemon!.stats.join('\n');
+    final statsPainter = TextPainter(
+      text: TextSpan(
+        text: 'Estadísticas:\n$statsText',
+        style: const TextStyle(
+          color: Colors.white,
+          fontSize: 18,
+          fontFamily: 'DiaryOfAn8BitMage',
+        ),
+      ),
+      textDirection: TextDirection.ltr,
+    );
+    statsPainter.layout(minWidth: 0, maxWidth: width);
+    statsPainter.paint(canvas, Offset(50, 450));
+
     final picture = recorder.endRecording();
-    final img = await picture.toImage(size.width.toInt(), size.height.toInt());
+    final img = await picture.toImage(width.toInt(), height.toInt());
     final byteData = await img.toByteData(format: ui.ImageByteFormat.png);
     return byteData!.buffer.asUint8List();
+  }
+
+  Future<ui.Image> _loadAssetImage(String assetPath) async {
+    final data = await rootBundle.load(assetPath);
+    final codec = await ui.instantiateImageCodec(data.buffer.asUint8List());
+    final frame = await codec.getNextFrame();
+    return frame.image;
+  }
+
+  Future<ui.Image> _loadNetworkImage(String url) async {
+    final completer = Completer<ui.Image>();
+    final image = NetworkImage(url);
+    image.resolve(ImageConfiguration()).addListener(
+      ImageStreamListener((ImageInfo info, bool _) {
+        completer.complete(info.image);
+      }),
+    );
+    return completer.future;
   }
 
   void _changeBackgroundColor(Color color) {
