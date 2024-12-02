@@ -320,7 +320,7 @@ class _PokemonListPageState extends State<PokemonListPage>
         backgroundColor: const Color(0xFF59CEDE),
         actions: [
           IconButton(
-            icon: const Icon(Icons.star),
+            icon: const Icon(Icons.favorite),
             onPressed: () {
               Navigator.push(
                 context,
@@ -375,24 +375,15 @@ class _PokemonListPageState extends State<PokemonListPage>
                   Row(
                     children: [
                       Expanded(
-                        child: ElevatedButton.icon(
-                          onPressed: () => _showFilterOptions(context, 'type'),
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: Colors.blue,
-                          ),
-                          icon:
-                              Icon(Icons.filter_list_alt, color: Colors.white),
-                          label: Text(
-                            '',
-                            style: const TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.bold,
-                              color: Colors.white,
-                              fontFamily: 'DiaryOfAn8BitMage',
-                            ),
-                          ),
-                        ),
-                      ),
+  child: ElevatedButton.icon(
+    onPressed: () => _showFilterOptions(context, 'type'),
+    style: ElevatedButton.styleFrom(
+      backgroundColor: Colors.blue,
+    ),
+    icon: Icon(Icons.filter_list_alt, color: Colors.white),
+    label: const SizedBox.shrink(),
+  ),
+),
                       const SizedBox(width: 8),
                       Expanded(
                         child: ElevatedButton(
