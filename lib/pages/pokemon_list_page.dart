@@ -32,7 +32,7 @@ class _PokemonListPageState extends State<PokemonListPage>
   List<Pokemon> filteredPokemons = [];
   List<String> selectedTypes = [];
   List<String> selectedGenerations = [];
-  String? selectedOrder;
+  String? selectedOrder = null;
   late List<AnimationController> _controllers;
   late List<Animation<Offset>> _animations;
 
@@ -70,6 +70,7 @@ class _PokemonListPageState extends State<PokemonListPage>
   ];
 
   final List<String> orderByFields = [
+    'Ninguno',
     'name',
     'hp',
     'attack',
@@ -100,33 +101,13 @@ class _PokemonListPageState extends State<PokemonListPage>
     'dark': Colors.black,
     'fairy': Colors.pinkAccent,
   };
-/*
-  =
-  =
-  =
-  =
-  =
-  =
-  =
-  =
-  =
-  */
+
   @override
   void initState() {
     super.initState();
     searchController.addListener(_filterPokemons);
   }
-/*
-  =
-  =
-  =
-  =
-  =
-  =
-  =
-  =
-  =
-  */
+
   void _initializeAnimations() {
     _controllers = List.generate(
       filteredPokemons.length,
@@ -142,17 +123,7 @@ class _PokemonListPageState extends State<PokemonListPage>
       ).animate(CurvedAnimation(parent: controller, curve: Curves.easeOut));
     }).toList();
   }
-/*
-  =
-  =
-  =
-  =
-  =
-  =
-  =
-  =
-  =
-  */
+
   @override
   void dispose() {
     for (var controller in _controllers) {
@@ -161,17 +132,7 @@ class _PokemonListPageState extends State<PokemonListPage>
     searchController.dispose();
     super.dispose();
   }
-/*
-  =
-  =
-  =
-  =
-  =
-  =
-  =
-  =
-  =
-  */
+
   void _filterPokemons() {
     final query = searchController.text.toLowerCase();
     setState(() {
@@ -186,37 +147,17 @@ class _PokemonListPageState extends State<PokemonListPage>
       _initializeAnimations();
     });
   }
-  /*
-  =
-  =
-  =
-  =
-  =
-  =
-  =
-  =
-  =
-  */
+
   void _clearSearch() {
     searchController.clear();
     setState(() {
       selectedTypes.clear();
       selectedGenerations.clear();
-      selectedOrder = null;
+      selectedOrder = 'Ninguno';
       final query = PokemonQueries.getAllPokemonsOrderedById();
     });
   }
-  /*
-  =
-  =
-  =
-  =
-  =
-  =
-  =
-  =
-  =
-  */
+
   void _showFilterOptions(BuildContext context, String filterType) {
     showModalBottomSheet(
       context: context,
@@ -250,7 +191,8 @@ class _PokemonListPageState extends State<PokemonListPage>
                             }
                           });
                           setState(() {
-                            if (selectedTypes.isEmpty && selectedGenerations.isEmpty) {
+                            if (selectedTypes.isEmpty &&
+                                selectedGenerations.isEmpty) {
                               filteredPokemons = List.from(allPokemons);
                             } else {
                               _filterPokemons();
@@ -274,17 +216,7 @@ class _PokemonListPageState extends State<PokemonListPage>
       },
     );
   }
-/*
-  =
-  =
-  =
-  =
-  =
-  =
-  =
-  =
-  =
-  */
+
   void _showOrderOptions(BuildContext context) {
     showModalBottomSheet(
       context: context,
@@ -309,7 +241,7 @@ class _PokemonListPageState extends State<PokemonListPage>
                         groupValue: selectedOrder,
                         onChanged: (String? value) {
                           setModalState(() {
-                            selectedOrder = value;
+                            selectedOrder = value == 'Ninguno' ? null : value;
                           });
                           setState(() {
                             _filterPokemons(); // Update the list based on the selected order
@@ -333,29 +265,17 @@ class _PokemonListPageState extends State<PokemonListPage>
       },
     );
   }
-/*
-  =
-  =
-  =
-  =
-  =
-  =
-  =
-  =
-  =
-  */
+
   @override
   Widget build(BuildContext context) {
-    selectedOrder ??= 'name';
+    selectedOrder ??= null;
 
     final bool useFilters = selectedTypes.isNotEmpty ||
         selectedGenerations.isNotEmpty ||
         selectedOrder != null;
 
-    final String query = useFilters
-        ? PokemonQueries.getPokemons(
-            selectedTypes, selectedGenerations, selectedOrder)
-        : PokemonQueries.getAllPokemons();
+    final String query = PokemonQueries.getPokemons(
+        selectedTypes, selectedGenerations, selectedOrder);
 
     final Map<String, dynamic> variables = {};
     if (selectedTypes.isNotEmpty) {
