@@ -190,7 +190,7 @@ class _PokemonDetailPageState extends State<PokemonDetailPage>
                     .toList() ??
                 ['Desconocido'],
             stats: (pokemonData['pokemon_v2_pokemonstats'] as List?)
-                    ?.map((stat) => stat['pokemon_v2_stat']['name'] as String)
+                    ?.map((stat) => '${stat['pokemon_v2_stat']['name']}: ${stat['base_stat']}')
                     .toList() ??
                 ['Desconocido'],
             moves: (pokemonData['pokemon_v2_pokemonmoves'] as List?)
@@ -346,7 +346,7 @@ class _PokemonDetailPageState extends State<PokemonDetailPage>
                     child: Card(
                       shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(12)),
-                      color: const Color(0xFF04DB9A),
+                      color: const Color(0xFF0491DC),
                       child: Padding(
                         padding: const EdgeInsets.all(16.0),
                         child: Column(
@@ -378,7 +378,7 @@ class _PokemonDetailPageState extends State<PokemonDetailPage>
                     child: Card(
                       shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(12)),
-                      color: const Color(0xFF04DB9A),
+                      color: const Color(0xFF0491DC),
                       child: Padding(
                         padding: const EdgeInsets.all(16.0),
                         child: Column(
@@ -391,13 +391,31 @@ class _PokemonDetailPageState extends State<PokemonDetailPage>
                                 fontWeight: FontWeight.bold,
                               ),
                             ),
-                            Text(
-                              pokemon.stats.join(', '),
-                              style: const TextStyle(
-                                fontFamily: 'DiaryOfAn8BitMage',
-                                fontSize: 16,
-                              ),
-                            ),
+                            ...pokemon.stats.map((stat) {
+                              final parts = stat.split(': '); // Split the string to get name and base_stat
+                              return Padding(
+                                padding: const EdgeInsets.symmetric(vertical: 4.0),
+                                child: Row(
+                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                  children: [
+                                    Text(
+                                      parts[0], // Name part
+                                      style: const TextStyle(
+                                        fontFamily: 'DiaryOfAn8BitMage',
+                                        fontSize: 16,
+                                      ),
+                                    ),
+                                    Text(
+                                      parts[1], // Base stat part
+                                      style: const TextStyle(
+                                        fontFamily: 'DiaryOfAn8BitMage',
+                                        fontSize: 16,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              );
+                            }).toList(),
                           ],
                         ),
                       ),
@@ -410,7 +428,7 @@ class _PokemonDetailPageState extends State<PokemonDetailPage>
                     child: Card(
                       shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(12)),
-                      color: const Color(0xFF04DB9A),
+                      color: const Color(0xFF0491DC),
                       child: Padding(
                         padding: const EdgeInsets.all(16.0),
                         child: Column(
@@ -438,7 +456,7 @@ class _PokemonDetailPageState extends State<PokemonDetailPage>
                                   ),
                                   leading: Container(
                                     decoration: BoxDecoration(
-                                      color: const Color(0xFF04DB9A),
+                                      color: const Color(0xFF0491DC),
                                       borderRadius: BorderRadius.circular(8),
                                     ),
                                     padding: const EdgeInsets.all(8),

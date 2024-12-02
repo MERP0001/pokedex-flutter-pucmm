@@ -11,6 +11,9 @@ class PokemonQueries {
   ];
   static String getPokemons(
       List<String>? types, List<String>? generations, String? orderByField) {
+    // Establecer un valor predeterminado si orderByField es nulo
+    orderByField ??= 'name';
+
     final typeFilter = types != null && types.isNotEmpty
         ? 'pokemon_v2_pokemontypes: { pokemon_v2_type: { name: { _in: \$types } } }'
         : '';
@@ -18,51 +21,51 @@ class PokemonQueries {
         ? 'pokemon_v2_pokemonspecy: { pokemon_v2_generation: { name: { _in: \$generations } } }'
         : '';
 
+    // Combine filters into a single where clause
+    final whereClause = [typeFilter, generationFilter]
+        .where((filter) => filter.isNotEmpty)
+        .join(', ');
+
     // Lógica para determinar el orden
     String orderBy = '';
 
     if (stats.contains(orderByField)) {
       // Ordenar por un stat específico
       orderBy = '''
-      order_by: {
-        pokemon_v2_pokemonstats_aggregate: {
-          sum: {
-            base_stat: desc
+        order_by: {
+          pokemon_v2_pokemonstats_aggregate: {
+            sum: {
+              base_stat: desc
+            }
           }
         }
-      },
-      where: {
-        pokemon_v2_pokemonstats: {
-          pokemon_v2_stat: { name: { _eq: "$orderByField" } }
-        }
-      }
-    ''';
+      ''';
     } else if (orderByField == 'total') {
       // Ordenar por el total de stats
       orderBy = '''
-      order_by: {
-        pokemon_v2_pokemonstats_aggregate: {
-          sum: {
-            base_stat: desc
+        order_by: {
+          pokemon_v2_pokemonstats_aggregate: {
+            sum: {
+              base_stat: desc
+            }
           }
         }
-      }
-    ''';
+      ''';
     } else if (orderByField == 'name') {
       // Ordenar por nombre
       orderBy = '''
-      order_by: {
-        name: asc
-      }
-    ''';
+        order_by: {
+          name: asc
+        }
+      ''';
     }
 
     final query = '''
       query GetPokemons(\$types: [String!], \$generations: [String!]) {
-        pokemon_v2_pokemon(where: {
-          $typeFilter
-          $generationFilter
-        }, $orderBy) {
+        pokemon_v2_pokemon(
+          ${whereClause.isNotEmpty ? 'where: { $whereClause },' : ''}
+          $orderBy
+        ) {
           id
           name
           pokemon_v2_pokemontypes {
@@ -86,6 +89,27 @@ class PokemonQueries {
     return '''
       query GetAllPokemons {
         pokemon_v2_pokemon {
+          id
+          name
+          pokemon_v2_pokemontypes {
+            pokemon_v2_type {
+              name
+            }
+          }
+          pokemon_v2_pokemonspecy {
+            pokemon_v2_generation {
+              name
+            }
+          }
+        }
+      }
+    ''';
+  }
+
+  static String getAllPokemonsOrderedById() {
+    return '''
+      query GetAllPokemonsOrderedById {
+        pokemon_v2_pokemon(order_by: { id: asc }) {
           id
           name
           pokemon_v2_pokemontypes {

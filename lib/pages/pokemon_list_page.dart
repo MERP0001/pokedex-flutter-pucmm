@@ -100,13 +100,33 @@ class _PokemonListPageState extends State<PokemonListPage>
     'dark': Colors.black,
     'fairy': Colors.pinkAccent,
   };
-
+/*
+  =
+  =
+  =
+  =
+  =
+  =
+  =
+  =
+  =
+  */
   @override
   void initState() {
     super.initState();
     searchController.addListener(_filterPokemons);
   }
-
+/*
+  =
+  =
+  =
+  =
+  =
+  =
+  =
+  =
+  =
+  */
   void _initializeAnimations() {
     _controllers = List.generate(
       filteredPokemons.length,
@@ -122,7 +142,17 @@ class _PokemonListPageState extends State<PokemonListPage>
       ).animate(CurvedAnimation(parent: controller, curve: Curves.easeOut));
     }).toList();
   }
-
+/*
+  =
+  =
+  =
+  =
+  =
+  =
+  =
+  =
+  =
+  */
   @override
   void dispose() {
     for (var controller in _controllers) {
@@ -131,7 +161,17 @@ class _PokemonListPageState extends State<PokemonListPage>
     searchController.dispose();
     super.dispose();
   }
-
+/*
+  =
+  =
+  =
+  =
+  =
+  =
+  =
+  =
+  =
+  */
   void _filterPokemons() {
     final query = searchController.text.toLowerCase();
     setState(() {
@@ -146,16 +186,37 @@ class _PokemonListPageState extends State<PokemonListPage>
       _initializeAnimations();
     });
   }
-
+  /*
+  =
+  =
+  =
+  =
+  =
+  =
+  =
+  =
+  =
+  */
   void _clearSearch() {
     searchController.clear();
     setState(() {
       selectedTypes.clear();
       selectedGenerations.clear();
-      filteredPokemons = List.from(allPokemons);
+      selectedOrder = null;
+      final query = PokemonQueries.getAllPokemonsOrderedById();
     });
   }
-
+  /*
+  =
+  =
+  =
+  =
+  =
+  =
+  =
+  =
+  =
+  */
   void _showFilterOptions(BuildContext context, String filterType) {
     showModalBottomSheet(
       context: context,
@@ -187,8 +248,13 @@ class _PokemonListPageState extends State<PokemonListPage>
                             } else {
                               selectedOptions.remove(option);
                             }
-                            setState(
-                                () {}); // Trigger a rebuild to update the query
+                          });
+                          setState(() {
+                            if (selectedTypes.isEmpty && selectedGenerations.isEmpty) {
+                              filteredPokemons = List.from(allPokemons);
+                            } else {
+                              _filterPokemons();
+                            }
                           });
                         },
                       );
@@ -208,9 +274,80 @@ class _PokemonListPageState extends State<PokemonListPage>
       },
     );
   }
+/*
+  =
+  =
+  =
+  =
+  =
+  =
+  =
+  =
+  =
+  */
+  void _showOrderOptions(BuildContext context) {
+    showModalBottomSheet(
+      context: context,
+      builder: (BuildContext context) {
+        final orderOptions = orderByFields;
 
+        return StatefulBuilder(
+          builder: (BuildContext context, StateSetter setModalState) {
+            return Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                ListTile(
+                  title: const Text('Selecciona un orden'),
+                ),
+                SizedBox(
+                  height: 300,
+                  child: ListView(
+                    children: orderOptions.map((option) {
+                      return RadioListTile<String>(
+                        title: Text(option),
+                        value: option,
+                        groupValue: selectedOrder,
+                        onChanged: (String? value) {
+                          setModalState(() {
+                            selectedOrder = value;
+                          });
+                          setState(() {
+                            _filterPokemons(); // Update the list based on the selected order
+                          });
+                          Navigator.pop(context); // Close the modal
+                        },
+                      );
+                    }).toList(),
+                  ),
+                ),
+                TextButton(
+                  onPressed: () {
+                    Navigator.pop(context);
+                  },
+                  child: const Text('Cerrar'),
+                ),
+              ],
+            );
+          },
+        );
+      },
+    );
+  }
+/*
+  =
+  =
+  =
+  =
+  =
+  =
+  =
+  =
+  =
+  */
   @override
   Widget build(BuildContext context) {
+    selectedOrder ??= 'name';
+
     final bool useFilters = selectedTypes.isNotEmpty ||
         selectedGenerations.isNotEmpty ||
         selectedOrder != null;
@@ -244,7 +381,7 @@ class _PokemonListPageState extends State<PokemonListPage>
             ),
           ],
         ),
-        backgroundColor: const Color.fromARGB(255, 7, 169, 244),
+        backgroundColor: const Color(0xFF59CEDE),
         actions: [
           IconButton(
             icon: const Icon(Icons.star),
@@ -302,13 +439,15 @@ class _PokemonListPageState extends State<PokemonListPage>
                   Row(
                     children: [
                       Expanded(
-                        child: ElevatedButton(
+                        child: ElevatedButton.icon(
                           onPressed: () => _showFilterOptions(context, 'type'),
                           style: ElevatedButton.styleFrom(
                             backgroundColor: Colors.blue,
                           ),
-                          child: Text(
-                            'Filtrar por Tipo (${selectedTypes.length})',
+                          icon:
+                              Icon(Icons.filter_list_alt, color: Colors.white),
+                          label: Text(
+                            '',
                             style: const TextStyle(
                               fontSize: 16,
                               fontWeight: FontWeight.bold,
@@ -326,13 +465,23 @@ class _PokemonListPageState extends State<PokemonListPage>
                           style: ElevatedButton.styleFrom(
                             backgroundColor: Colors.blue,
                           ),
-                          child: Text(
-                            'Filtrar por Generación (${selectedGenerations.length})',
-                            style: const TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.bold,
+                          child: Icon(
+                            Icons.filter_list,
+                            color: Colors.white,
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: ElevatedButton(
+                          onPressed: () => _showOrderOptions(context),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.blue,
+                          ),
+                          child: const Text(
+                            'Ordenar',
+                            style: TextStyle(
                               color: Colors.white,
-                              fontFamily: 'DiaryOfAn8BitMage',
                             ),
                           ),
                         ),
