@@ -58,17 +58,21 @@ class _PokemonListPageState extends State<PokemonListPage>
     'fairy'
   ];
 
-  final List<String> generations = [
-    'generation-i',
-    'generation-ii',
-    'generation-iii',
-    'generation-iv',
-    'generation-v',
-    'generation-vi',
-    'generation-vii',
-    'generation-viii',
-    'generation-ix'
-  ];
+  final Map<String, String> generations = {
+    'generation-i': 'Primera',
+    'generation-ii': 'Segunda',
+    'generation-iii': 'Tercera',
+    'generation-iv': 'Cuarta',
+    'generation-v': 'Quinta',
+    'generation-vi': 'Sexta',
+    'generation-vii': 'Séptima',
+    'generation-viii': 'Octava',
+    'generation-ix': 'Novena',
+  };
+
+  String getGenerationName(String key) {
+    return generations[key] ?? 'Unknown Generation';
+  }
 
   final List<String> orderByFields = [
     'Ninguno',
@@ -102,6 +106,29 @@ class _PokemonListPageState extends State<PokemonListPage>
     'dark': Colors.black,
     'fairy': Colors.pinkAccent,
   };
+
+  // Function to draw text with a border
+  Widget _textWithBorder(String text, TextStyle style, {double borderWidth = 2.0}) {
+    return Stack(
+      children: [
+        // Border text
+        Text(
+          text,
+          style: style.copyWith(
+            foreground: Paint()
+              ..style = PaintingStyle.stroke
+              ..strokeWidth = borderWidth
+              ..color = Colors.black,
+          ),
+        ),
+        // Main text
+        Text(
+          text,
+          style: style,
+        ),
+      ],
+    );
+  }
 
   @override
   void initState() {
@@ -146,7 +173,8 @@ class _PokemonListPageState extends State<PokemonListPage>
             selectedTypes.any((type) => pokemon.types.contains(type));
         final matchesGeneration = selectedGenerations.isEmpty ||
             selectedGenerations.contains(pokemon.generation);
-        final matchesSearch = pokemon.name.toLowerCase().contains(query);
+        final matchesSearch = pokemon.name.toLowerCase().contains(query) ||
+            pokemon.id.toString() == query;
         return matchesType && matchesGeneration && matchesSearch;
       }).toList();
       _initializeAnimations();
@@ -159,10 +187,21 @@ class _PokemonListPageState extends State<PokemonListPage>
       selectedTypes.clear();
       selectedGenerations.clear();
       selectedOrder = 'Ninguno';
-      final query = PokemonQueries.getAllPokemonsOrderedById();
+      filteredPokemons = allPokemons; // Reset filteredPokemons to allPokemons
+      _initializeAnimations(); // Reinitialize animations for all elements
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        // Remove the old list view
+        setState(() {
+          filteredPokemons = [];
+        });
+        // Load a new list view
+        setState(() {
+          filteredPokemons = allPokemons;
+        });
+      });
       _scrollController.animateTo(
         0.0,
-        duration: const Duration(milliseconds: 500),
+        duration: const Duration(milliseconds: 1),
         curve: Curves.easeOut,
       );
     });
@@ -172,7 +211,8 @@ class _PokemonListPageState extends State<PokemonListPage>
     showModalBottomSheet(
       context: context,
       builder: (BuildContext context) {
-        final options = filterType == 'type' ? types : generations;
+        final options =
+            filterType == 'type' ? types : generations.keys.toList();
         final selectedOptions =
             filterType == 'type' ? selectedTypes : selectedGenerations;
 
@@ -190,7 +230,9 @@ class _PokemonListPageState extends State<PokemonListPage>
                   child: ListView(
                     children: options.map((option) {
                       return CheckboxListTile(
-                        title: Text(option),
+                        title: Text(filterType == 'type'
+                            ? option
+                            : generations[option]!),
                         value: selectedOptions.contains(option),
                         onChanged: (bool? value) {
                           setModalState(() {
@@ -201,12 +243,7 @@ class _PokemonListPageState extends State<PokemonListPage>
                             }
                           });
                           setState(() {
-                            if (selectedTypes.isEmpty &&
-                                selectedGenerations.isEmpty) {
-                              filteredPokemons = List.from(allPokemons);
-                            } else {
-                              _filterPokemons();
-                            }
+                            _filterPokemons();
                           });
                         },
                       );
@@ -344,7 +381,7 @@ class _PokemonListPageState extends State<PokemonListPage>
       ),
       body: Container(
         decoration: BoxDecoration(
-          color: Colors.lightBlueAccent,
+          color: Colors.white,
           image: DecorationImage(
             image: const AssetImage('assets/icons/pokeball.png'),
             fit: BoxFit.none,
@@ -371,12 +408,13 @@ class _PokemonListPageState extends State<PokemonListPage>
                             labelText: 'Buscar Pokémon',
                             prefixIcon: Icon(Icons.search),
                             filled: true,
-                            fillColor: Colors.white,
+                            fillColor: Colors.grey.shade200,
                             border: OutlineInputBorder(
                               borderRadius: BorderRadius.circular(30.0),
                               borderSide: BorderSide.none,
                             ),
-                            contentPadding: EdgeInsets.symmetric(vertical: 10.0, horizontal: 20.0),
+                            contentPadding: EdgeInsets.symmetric(
+                                vertical: 10.0, horizontal: 20.0),
                           ),
                           onChanged: (value) {
                             _filterPokemons();
@@ -392,22 +430,23 @@ class _PokemonListPageState extends State<PokemonListPage>
                   Row(
                     children: [
                       Expanded(
-  child: ElevatedButton.icon(
-    onPressed: () => _showFilterOptions(context, 'type'),
-    style: ElevatedButton.styleFrom(
-      backgroundColor: Colors.blue,
-    ),
-    icon: Icon(Icons.filter_list_alt, color: Colors.white),
-    label: const SizedBox.shrink(),
-  ),
-),
+                        child: ElevatedButton.icon(
+                          onPressed: () => _showFilterOptions(context, 'type'),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Color(0xFF59CEDE),
+                          ),
+                          icon:
+                              Icon(Icons.filter_list_alt, color: Colors.white),
+                          label: const SizedBox.shrink(),
+                        ),
+                      ),
                       const SizedBox(width: 8),
                       Expanded(
                         child: ElevatedButton(
                           onPressed: () =>
                               _showFilterOptions(context, 'generation'),
                           style: ElevatedButton.styleFrom(
-                            backgroundColor: Colors.blue,
+                            backgroundColor: Color(0xFF59CEDE),
                           ),
                           child: Icon(
                             Icons.filter_list,
@@ -420,7 +459,7 @@ class _PokemonListPageState extends State<PokemonListPage>
                         child: ElevatedButton(
                           onPressed: () => _showOrderOptions(context),
                           style: ElevatedButton.styleFrom(
-                            backgroundColor: Colors.blue,
+                            backgroundColor: Color(0xFF59CEDE),
                           ),
                           child: const Text(
                             'Ordenar',
@@ -574,9 +613,9 @@ class _PokemonListPageState extends State<PokemonListPage>
                                         crossAxisAlignment:
                                             CrossAxisAlignment.start,
                                         children: [
-                                          Text(
+                                          _textWithBorder(
                                             '#${pokemon.id} ${pokemon.name}',
-                                            style: const TextStyle(
+                                            const TextStyle(
                                               fontFamily: 'DiaryOfAn8BitMage',
                                               fontSize: 22,
                                               fontWeight: FontWeight.bold,
@@ -598,9 +637,10 @@ class _PokemonListPageState extends State<PokemonListPage>
                                             }).toList(),
                                           ),
                                           const SizedBox(height: 4),
-                                          Text(
-                                            pokemon.generation,
-                                            style: const TextStyle(
+                                          _textWithBorder(
+                                            getGenerationName(pokemon.generation) +
+                                                ' Generación',
+                                            const TextStyle(
                                               color: Colors.white,
                                               fontFamily: 'DiaryOfAn8BitMage',
                                               fontSize: 16,

@@ -58,6 +58,11 @@ class _PokemonDetailPageState extends State<PokemonDetailPage>
     'normal': Colors.grey,
   };
 
+  // Define el color del texto basado en el tipo de Pokémon
+  Color getTextColor(String type) {
+    return type == 'dark' ? Colors.white : Colors.black;
+  }
+
   @override
   void initState() {
     super.initState();
@@ -141,82 +146,87 @@ class _PokemonDetailPageState extends State<PokemonDetailPage>
         'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/${pokemon!.id}.png');
     canvas.drawImage(image, Offset(50, 50), Paint());
 
-    final textPainter = TextPainter(
-      text: TextSpan(
-        text: pokemon!.name.toUpperCase(),
-        style: const TextStyle(
-          color: Colors.white,
-          fontSize: 24,
-          fontWeight: FontWeight.bold,
-          fontFamily: 'DiaryOfAn8BitMage',
-        ),
-      ),
-      textDirection: TextDirection.ltr,
-    );
-    textPainter.layout(minWidth: 0, maxWidth: width);
-    textPainter.paint(canvas, Offset(50, 300));
+    // Function to draw text with border
+    void drawTextWithBorder(Canvas canvas, String text, double x, double y, TextStyle style, {double borderWidth = 2.0}) {
+      final borderStyle = style.copyWith(
+        foreground: Paint()
+          ..style = PaintingStyle.stroke
+          ..strokeWidth = borderWidth
+          ..color = Colors.black,
+      );
 
-    // Dibujar los tipos como chips
-    double chipOffsetY = 350;
-    for (var type in pokemon.types) {
-      final chipPainter = TextPainter(
-        text: TextSpan(
-          text: type,
-          style: const TextStyle(
-            color: Colors.white,
-            fontSize: 16,
-            fontFamily: 'DiaryOfAn8BitMage',
-          ),
-        ),
+      final textPainterBorder = TextPainter(
+        text: TextSpan(text: text, style: borderStyle),
         textDirection: TextDirection.ltr,
       );
-      chipPainter.layout();
-      final chipWidth = chipPainter.width + 16;
-      final chipHeight = chipPainter.height + 8;
+      textPainterBorder.layout(minWidth: 0, maxWidth: width);
+      textPainterBorder.paint(canvas, Offset(x, y));
 
-      final paint = Paint()..color = typeColors[type] ?? Colors.grey;
-      canvas.drawRRect(
-        RRect.fromRectAndRadius(
-          Rect.fromLTWH(50, chipOffsetY, chipWidth, chipHeight),
-          Radius.circular(8),
-        ),
-        paint,
+      final textPainter = TextPainter(
+        text: TextSpan(text: text, style: style),
+        textDirection: TextDirection.ltr,
       );
+      textPainter.layout(minWidth: 0, maxWidth: width);
+      textPainter.paint(canvas, Offset(x, y));
+    }
 
-      chipPainter.paint(canvas, Offset(58, chipOffsetY + 4));
-      chipOffsetY += chipHeight + 8;
+    // Draw the name with border
+    drawTextWithBorder(
+      canvas,
+      pokemon!.name.toUpperCase(),
+      50,
+      300,
+      const TextStyle(
+        color: Colors.white,
+        fontSize: 24,
+        fontWeight: FontWeight.bold,
+        fontFamily: 'DiaryOfAn8BitMage',
+      ),
+    );
+
+    // Draw the types as chips with border
+    double chipOffsetY = 350;
+    for (var type in pokemon.types) {
+      drawTextWithBorder(
+        canvas,
+        type,
+        50,
+        chipOffsetY,
+        const TextStyle(
+          color: Colors.white,
+          fontSize: 16,
+          fontFamily: 'DiaryOfAn8BitMage',
+        ),
+      );
+      chipOffsetY += 24; // Adjust spacing between chips
     }
 
     final heightWeightText =
         'Altura: ${pokemon!.height} m, Peso: ${pokemon!.weight} kg';
-    final heightWeightPainter = TextPainter(
-      text: TextSpan(
-        text: heightWeightText,
-        style: const TextStyle(
-          color: Colors.white,
-          fontSize: 18,
-          fontFamily: 'DiaryOfAn8BitMage',
-        ),
+    drawTextWithBorder(
+      canvas,
+      heightWeightText,
+      50,
+      chipOffsetY + 16,
+      const TextStyle(
+        color: Colors.white,
+        fontSize: 18,
+        fontFamily: 'DiaryOfAn8BitMage',
       ),
-      textDirection: TextDirection.ltr,
     );
-    heightWeightPainter.layout(minWidth: 0, maxWidth: width);
-    heightWeightPainter.paint(canvas, Offset(50, chipOffsetY + 16));
 
     final statsText = pokemon!.stats.join('\n');
-    final statsPainter = TextPainter(
-      text: TextSpan(
-        text: 'Estadísticas:\n$statsText',
-        style: const TextStyle(
-          color: Colors.white,
-          fontSize: 18,
-          fontFamily: 'DiaryOfAn8BitMage',
-        ),
+    drawTextWithBorder(
+      canvas,
+      'Estadísticas:\n$statsText',
+      50,
+      chipOffsetY + 56,
+      const TextStyle(
+        color: Colors.white,
+        fontSize: 18,
+        fontFamily: 'DiaryOfAn8BitMage',
       ),
-      textDirection: TextDirection.ltr,
     );
-    statsPainter.layout(minWidth: 0, maxWidth: width);
-    statsPainter.paint(canvas, Offset(50, chipOffsetY + 56));
 
     final picture = recorder.endRecording();
     final img = await picture.toImage(width.toInt(), height.toInt());
@@ -347,6 +357,7 @@ class _PokemonDetailPageState extends State<PokemonDetailPage>
           final primaryType =
               pokemon.types.isNotEmpty ? pokemon.types.first : 'normal';
           final containerColor = typeColors[primaryType] ?? Colors.grey;
+          final textColor = getTextColor(primaryType);
 
           return Container(
             decoration: BoxDecoration(
@@ -380,7 +391,7 @@ class _PokemonDetailPageState extends State<PokemonDetailPage>
                     ),
                   ],
                 ),
-                backgroundColor: const Color(0xFF548C94),
+                backgroundColor: containerColor,
                 actions: [
                   IconButton(
                     icon: Icon(
@@ -431,7 +442,7 @@ class _PokemonDetailPageState extends State<PokemonDetailPage>
                                     ?.copyWith(
                                       fontFamily: 'DiaryOfAn8BitMage',
                                       fontWeight: FontWeight.bold,
-                                      color: Colors.white,
+                                      color: getTextColor(primaryType),
                                     ),
                               ),
                               const SizedBox(height: 8),
@@ -470,18 +481,20 @@ class _PokemonDetailPageState extends State<PokemonDetailPage>
                               padding: const EdgeInsets.all(16.0),
                               child: Column(
                                 children: [
-                                  const Text(
+                                  Text(
                                     'Altura',
                                     style: TextStyle(
                                       fontFamily: 'DiaryOfAn8BitMage',
                                       fontWeight: FontWeight.bold,
+                                      color: textColor,
                                     ),
                                   ),
                                   Text(
                                     '${pokemon.height} m',
-                                    style: const TextStyle(
+                                    style: TextStyle(
                                       fontFamily: 'DiaryOfAn8BitMage',
                                       fontSize: 16,
+                                      color: textColor,
                                     ),
                                   ),
                                 ],
@@ -503,18 +516,20 @@ class _PokemonDetailPageState extends State<PokemonDetailPage>
                               padding: const EdgeInsets.all(16.0),
                               child: Column(
                                 children: [
-                                  const Text(
+                                  Text(
                                     'Peso',
                                     style: TextStyle(
                                       fontFamily: 'DiaryOfAn8BitMage',
                                       fontWeight: FontWeight.bold,
+                                      color: textColor,
                                     ),
                                   ),
                                   Text(
                                     '${pokemon.weight} kg',
-                                    style: const TextStyle(
+                                    style: TextStyle(
                                       fontFamily: 'DiaryOfAn8BitMage',
                                       fontSize: 16,
+                                      color: textColor,
                                     ),
                                   ),
                                 ],
@@ -537,18 +552,20 @@ class _PokemonDetailPageState extends State<PokemonDetailPage>
                               child: Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
-                                  const Text(
+                                  Text(
                                     'Habilidades',
                                     style: TextStyle(
                                       fontFamily: 'DiaryOfAn8BitMage',
                                       fontWeight: FontWeight.bold,
+                                      color: textColor,
                                     ),
                                   ),
                                   Text(
                                     pokemon.abilities.join(', '),
-                                    style: const TextStyle(
+                                    style: TextStyle(
                                       fontFamily: 'DiaryOfAn8BitMage',
                                       fontSize: 16,
+                                      color: textColor,
                                     ),
                                   ),
                                 ],
@@ -641,11 +658,12 @@ class _PokemonDetailPageState extends State<PokemonDetailPage>
                               child: Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
-                                  const Text(
+                                  Text(
                                     'Movimientos',
                                     style: TextStyle(
                                       fontFamily: 'DiaryOfAn8BitMage',
                                       fontWeight: FontWeight.bold,
+                                      color: textColor,
                                     ),
                                   ),
                                   ListView.builder(
@@ -656,9 +674,10 @@ class _PokemonDetailPageState extends State<PokemonDetailPage>
                                       return ListTile(
                                         title: Text(
                                           pokemon.moves[index],
-                                          style: const TextStyle(
+                                          style: TextStyle(
                                             fontFamily: 'DiaryOfAn8BitMage',
                                             fontSize: 16,
+                                            color: textColor,
                                           ),
                                         ),
                                         leading: Container(
@@ -670,9 +689,10 @@ class _PokemonDetailPageState extends State<PokemonDetailPage>
                                           padding: const EdgeInsets.all(8),
                                           child: Text(
                                             '${index + 1}',
-                                            style: const TextStyle(
+                                            style: TextStyle(
                                               fontFamily: 'DiaryOfAn8BitMage',
                                               fontWeight: FontWeight.bold,
+                                              color: textColor,
                                             ),
                                           ),
                                         ),
@@ -691,7 +711,12 @@ class _PokemonDetailPageState extends State<PokemonDetailPage>
                                                 children:
                                                     pokemon.moves.map((move) {
                                                   return ListTile(
-                                                    title: Text(move),
+                                                    title: Text(
+                                                      move,
+                                                      style: TextStyle(
+                                                        color: textColor,
+                                                      ),
+                                                    ),
                                                   );
                                                 }).toList(),
                                               ),
@@ -730,19 +755,21 @@ class _PokemonDetailPageState extends State<PokemonDetailPage>
                               child: Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
-                                  const Text(
+                                  Text(
                                     'Evoluciones',
                                     style: TextStyle(
                                       fontFamily: 'DiaryOfAn8BitMage',
                                       fontWeight: FontWeight.bold,
+                                      color: textColor,
                                     ),
                                   ),
                                   if (evolutions.isEmpty)
-                                    const Text(
+                                    Text(
                                       'No evolutions available',
                                       style: TextStyle(
                                         fontFamily: 'DiaryOfAn8BitMage',
                                         fontSize: 16,
+                                        color: textColor,
                                       ),
                                     )
                                   else
@@ -780,17 +807,19 @@ class _PokemonDetailPageState extends State<PokemonDetailPage>
                                                 ),
                                                 Text(
                                                   evolution['name'],
-                                                  style: const TextStyle(
+                                                  style: TextStyle(
                                                     fontFamily: 'DiaryOfAn8BitMage',
                                                     fontSize: 16,
+                                                    color: textColor,
                                                   ),
                                                 ),
                                                 Text(
                                                   (evolution['types'] as List)
                                                       .join(', '),
-                                                  style: const TextStyle(
+                                                  style: TextStyle(
                                                     fontFamily: 'DiaryOfAn8BitMage',
                                                     fontSize: 14,
+                                                    color: textColor,
                                                   ),
                                                 ),
                                               ],

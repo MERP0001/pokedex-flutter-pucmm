@@ -84,8 +84,9 @@ class _FavoritesPageState extends State<FavoritesPage> {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Pokémon Favoritos'),
-      ),
+  title: const Text('Pokémon Favoritos'),
+  backgroundColor: Color(0xFF59CEDE), // Cambia el color según tu preferencia
+),
       body: Container(
         decoration: BoxDecoration(
           color: Colors.lightBlueAccent,
