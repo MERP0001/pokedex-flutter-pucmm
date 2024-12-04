@@ -16,6 +16,7 @@ import 'PokemonQueries.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'dart:math';
+import 'move_detail_page.dart';
 
 class PokemonDetailPage extends StatefulWidget {
   final int pokemonId;
@@ -147,7 +148,9 @@ class _PokemonDetailPageState extends State<PokemonDetailPage>
     canvas.drawImage(image, Offset(50, 50), Paint());
 
     // Function to draw text with border
-    void drawTextWithBorder(Canvas canvas, String text, double x, double y, TextStyle style, {double borderWidth = 2.0}) {
+    void drawTextWithBorder(
+        Canvas canvas, String text, double x, double y, TextStyle style,
+        {double borderWidth = 2.0}) {
       final borderStyle = style.copyWith(
         foreground: Paint()
           ..style = PaintingStyle.stroke
@@ -598,7 +601,8 @@ class _PokemonDetailPageState extends State<PokemonDetailPage>
                                   ...pokemon.stats.map((stat) {
                                     final parts = stat.split(': ');
                                     final statName = parts[0];
-                                    final statValue = int.tryParse(parts[1]) ?? 0;
+                                    final statValue =
+                                        int.tryParse(parts[1]) ?? 0;
                                     final progress = statValue / 250;
 
                                     return Padding(
@@ -615,14 +619,16 @@ class _PokemonDetailPageState extends State<PokemonDetailPage>
                                               Text(
                                                 statName,
                                                 style: const TextStyle(
-                                                  fontFamily: 'DiaryOfAn8BitMage',
+                                                  fontFamily:
+                                                      'DiaryOfAn8BitMage',
                                                   fontSize: 16,
                                                 ),
                                               ),
                                               Text(
                                                 parts[1],
                                                 style: const TextStyle(
-                                                  fontFamily: 'DiaryOfAn8BitMage',
+                                                  fontFamily:
+                                                      'DiaryOfAn8BitMage',
                                                   fontSize: 16,
                                                 ),
                                               ),
@@ -671,31 +677,31 @@ class _PokemonDetailPageState extends State<PokemonDetailPage>
                                     physics: NeverScrollableScrollPhysics(),
                                     itemCount: min(pokemon.moves.length, 3),
                                     itemBuilder: (context, index) {
+                                      final moveName = pokemon.moves[index] as String;
+
                                       return ListTile(
                                         title: Text(
-                                          pokemon.moves[index],
+                                          moveName,
                                           style: TextStyle(
                                             fontFamily: 'DiaryOfAn8BitMage',
                                             fontSize: 16,
                                             color: textColor,
                                           ),
                                         ),
-                                        leading: Container(
-                                          decoration: BoxDecoration(
-                                            color: containerColor,
-                                            borderRadius:
-                                                BorderRadius.circular(8),
-                                          ),
-                                          padding: const EdgeInsets.all(8),
-                                          child: Text(
-                                            '${index + 1}',
-                                            style: TextStyle(
-                                              fontFamily: 'DiaryOfAn8BitMage',
-                                              fontWeight: FontWeight.bold,
-                                              color: textColor,
+                                        onTap: () {
+                                          Navigator.of(context).pop();
+                                          Navigator.push(
+                                            context,
+                                            MaterialPageRoute(
+                                              builder: (context) => MoveDetailPage(
+                                                moveName: moveName,
+                                                moveType: 'Unknown', // Default or placeholder value
+                                                moveLevel: 0,        // Default or placeholder value
+                                                moveAccuracy: 0,     // Default or placeholder value
+                                              ),
                                             ),
-                                          ),
-                                        ),
+                                          );
+                                        },
                                       );
                                     },
                                   ),
@@ -709,14 +715,30 @@ class _PokemonDetailPageState extends State<PokemonDetailPage>
                                             content: SingleChildScrollView(
                                               child: ListBody(
                                                 children:
-                                                    pokemon.moves.map((move) {
+                                                    pokemon.moves.map((moveName) {
+                                                  final moveNameStr = moveName as String;
+
                                                   return ListTile(
                                                     title: Text(
-                                                      move,
+                                                      moveNameStr,
                                                       style: TextStyle(
                                                         color: textColor,
                                                       ),
                                                     ),
+                                                    onTap: () {
+                                                      Navigator.of(context).pop();
+                                                      Navigator.push(
+                                                        context,
+                                                        MaterialPageRoute(
+                                                          builder: (context) => MoveDetailPage(
+                                                            moveName: moveNameStr,
+                                                            moveType: 'Unknown', // Default or placeholder value
+                                                            moveLevel: 0,        // Default or placeholder value
+                                                            moveAccuracy: 0,     // Default or placeholder value
+                                                          ),
+                                                        ),
+                                                      );
+                                                    },
                                                   );
                                                 }).toList(),
                                               ),
@@ -733,7 +755,8 @@ class _PokemonDetailPageState extends State<PokemonDetailPage>
                                         },
                                       );
                                     },
-                                    child: const Text('Mostrar más movimientos'),
+                                    child:
+                                        const Text('Mostrar más movimientos'),
                                   ),
                                 ],
                               ),
@@ -783,7 +806,8 @@ class _PokemonDetailPageState extends State<PokemonDetailPage>
                                         itemBuilder: (context, index) {
                                           final evolution = evolutions[index];
                                           return Padding(
-                                            padding: const EdgeInsets.only(right: 8.0),
+                                            padding: const EdgeInsets.only(
+                                                right: 8.0),
                                             child: Column(
                                               children: [
                                                 GestureDetector(
@@ -808,7 +832,8 @@ class _PokemonDetailPageState extends State<PokemonDetailPage>
                                                 Text(
                                                   evolution['name'],
                                                   style: TextStyle(
-                                                    fontFamily: 'DiaryOfAn8BitMage',
+                                                    fontFamily:
+                                                        'DiaryOfAn8BitMage',
                                                     fontSize: 16,
                                                     color: textColor,
                                                   ),
@@ -817,7 +842,8 @@ class _PokemonDetailPageState extends State<PokemonDetailPage>
                                                   (evolution['types'] as List)
                                                       .join(', '),
                                                   style: TextStyle(
-                                                    fontFamily: 'DiaryOfAn8BitMage',
+                                                    fontFamily:
+                                                        'DiaryOfAn8BitMage',
                                                     fontSize: 14,
                                                     color: textColor,
                                                   ),
