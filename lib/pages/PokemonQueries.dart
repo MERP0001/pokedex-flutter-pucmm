@@ -188,8 +188,13 @@ class PokemonQueries {
           base_stat
         }
         pokemon_v2_pokemonmoves {
+          level
           pokemon_v2_move {
             name
+            pokemon_v2_type {
+              name
+            }
+            accuracy
           }
         }
         pokemon_v2_pokemonspecy {
